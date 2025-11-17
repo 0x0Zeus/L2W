@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { GAME_COLORS } from '@/constants/game';
+import React from 'react';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface GameHeaderProps {
   score: number;
@@ -9,6 +10,7 @@ interface GameHeaderProps {
 
 export default function GameHeader({ score, level }: GameHeaderProps) {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isSmallScreen = width < 400;
   const isVerySmall = width < 320;
   const titleSize = isVerySmall ? 28 : isSmallScreen ? 36 : 48;
@@ -16,7 +18,7 @@ export default function GameHeader({ score, level }: GameHeaderProps) {
   const infoSize = isVerySmall ? 12 : isSmallScreen ? 14 : 18;
   
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: Math.max(insets.top, 8) }]}>
       <View style={styles.titleContainer}>
         <Text style={[styles.title, { fontSize: titleSize }]}>L2W</Text>
         <Text style={[styles.subtitle, { fontSize: subtitleSize }]}>Learn to Win</Text>

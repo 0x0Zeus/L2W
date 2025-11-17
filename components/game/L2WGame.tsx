@@ -218,6 +218,15 @@ export default function L2WGame() {
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
 
+      // If movement is minimal, treat as tap (rotate)
+      if (absDx < 10 && absDy < 10) {
+        const rotated = rotatePiece(currentPiece);
+        if (canPlacePiece(grid, rotated)) {
+          setCurrentPiece(rotated);
+        }
+        return;
+      }
+
       if (absDx > absDy) {
         // Horizontal swipe
         if (dx > 30) {
