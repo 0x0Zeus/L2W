@@ -1,14 +1,13 @@
 import { GAME_COLORS, GRID_SIZE, PIECE_COLORS, Piece } from '@/constants/game';
 import React from 'react';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 interface PartAGridProps {
   grid: number[][];
   currentPiece: Piece | null;
-  onPressPiece?: () => void;
 }
 
-export default function PartAGrid({ grid, currentPiece, onPressPiece }: PartAGridProps) {
+export default function PartAGrid({ grid, currentPiece }: PartAGridProps) {
   const { width, height } = useWindowDimensions();
   const availableWidth = Math.min(width - 40, 500); // Max width for larger screens
   const availableHeight = height * 0.45; // Use 45% of screen height for grid
@@ -63,15 +62,13 @@ export default function PartAGrid({ grid, currentPiece, onPressPiece }: PartAGri
   };
 
   return (
-    <Pressable onPress={onPressPiece} android_disableSound>
-      <View style={styles.gridContainer}>
+    <View style={styles.gridContainer}>
       {Array.from({ length: GRID_SIZE }).map((_, row) => (
         <View key={row} style={styles.row}>
           {Array.from({ length: GRID_SIZE }).map((_, col) => renderCell(row, col))}
         </View>
       ))}
     </View>
-    </Pressable>
   );
 }
 

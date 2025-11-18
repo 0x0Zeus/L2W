@@ -39,6 +39,9 @@ import PartBGrid from './PartBGrid';
 import TransitionMessage from './TransitionMessage';
 
 const FALL_INTERVAL = 1000; // 1 second per fall
+const TAP_THRESHOLD = 10;
+const SWIPE_THRESHOLD = 30;
+const SWIPE_COOLDOWN_MS = 120;
 
 export default function L2WGame() {
   const { width } = useWindowDimensions();
@@ -57,7 +60,7 @@ export default function L2WGame() {
   const [currentRotation, setCurrentRotation] = useState(0);
 
   const fallIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastSwipeRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const lastSwipeRef = useRef<{ direction: 'left' | 'right' | 'down'; time: number } | null>(null);
 
   // Keyboard support for web
   useEffect(() => {
@@ -205,61 +208,7 @@ export default function L2WGame() {
     };
   }, [phase, gameStarted, currentPiece, grid]);
 
-  // Handle swipe gestures for Part A
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderRelease: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
-      if (phase !== 'partA' || !currentPiece) return;
-
-      const { moveX, moveY, x0, y0 } = gestureState;
-      const dx = moveX - x0;
-      const dy = moveY - y0;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-
-      // If movement is minimal, treat as tap (rotate)
-      if (absDx < 10 && absDy < 10) {
-        const rotated = rotatePiece(currentPiece);
-        if (canPlacePiece(grid, rotated)) {
-          setCurrentPiece(rotated);
-        }
-        return;
-      }
-
-      if (absDx > absDy) {
-        // Horizontal swipe
-        if (dx > 30) {
-          // Swipe right
-          setCurrentPiece((prev) => {
-            if (!prev) return null;
-            const testPiece = { ...prev, x: prev.x + 1 };
-            return canPlacePiece(grid, testPiece) ? testPiece : prev;
-          });
-        } else if (dx < -30) {
-          // Swipe left
-          setCurrentPiece((prev) => {
-            if (!prev) return null;
-            const testPiece = { ...prev, x: prev.x - 1 };
-            return canPlacePiece(grid, testPiece) ? testPiece : prev;
-          });
-        }
-      } else if (absDy > absDx && dy > 30) {
-        // Swipe down (fast drop)
-        setCurrentPiece((prev) => {
-          if (!prev) return null;
-          let testPiece = { ...prev, y: prev.y + 1 };
-          while (canPlacePiece(grid, testPiece)) {
-            testPiece = { ...testPiece, y: testPiece.y + 1 };
-          }
-          testPiece.y = testPiece.y - 1;
-          return testPiece;
-        });
-      }
-    },
-  });
-
-  // Handle tap to rotate (Part A)
+  // Handle tap to rotate (Part A) or rotate dragging block (Part B)
   const handleTap = useCallback(() => {
     if (phase === 'partA' && currentPiece) {
       const rotated = rotatePiece(currentPiece);
@@ -272,6 +221,66 @@ export default function L2WGame() {
       setDraggingPiece({ ...draggingPiece, rotation: newRotation });
     }
   }, [phase, currentPiece, grid, draggingPiece, currentRotation]);
+
+  // Handle swipe gestures for Part A
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => phase === 'partA',
+    onMoveShouldSetPanResponder: () => phase === 'partA',
+    onPanResponderMove: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+      if (phase !== 'partA') return;
+
+      const { dx, dy } = gestureState;
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      if (absDx > absDy && absDx > SWIPE_THRESHOLD) {
+        const direction: 'left' | 'right' = dx > 0 ? 'right' : 'left';
+        const now = Date.now();
+        if (
+          !lastSwipeRef.current ||
+          lastSwipeRef.current.direction !== direction ||
+          now - lastSwipeRef.current.time > SWIPE_COOLDOWN_MS
+        ) {
+          lastSwipeRef.current = { direction, time: now };
+          setCurrentPiece((prev) => {
+            if (!prev) return null;
+            const delta = direction === 'right' ? 1 : -1;
+            const testPiece = { ...prev, x: prev.x + delta };
+            return canPlacePiece(grid, testPiece) ? testPiece : prev;
+          });
+        }
+      } else if (absDy > absDx && dy > SWIPE_THRESHOLD) {
+        const now = Date.now();
+        if (
+          !lastSwipeRef.current ||
+          lastSwipeRef.current.direction !== 'down' ||
+          now - lastSwipeRef.current.time > SWIPE_COOLDOWN_MS
+        ) {
+          lastSwipeRef.current = { direction: 'down', time: now };
+          setCurrentPiece((prev) => {
+            if (!prev) return null;
+            let testPiece = { ...prev, y: prev.y + 1 };
+            while (canPlacePiece(grid, testPiece)) {
+              testPiece = { ...testPiece, y: testPiece.y + 1 };
+            }
+            testPiece.y = testPiece.y - 1;
+            return testPiece;
+          });
+        }
+      }
+    },
+    onPanResponderRelease: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+      lastSwipeRef.current = null;
+
+      if (phase !== 'partA') return;
+      const absDx = Math.abs(gestureState.dx);
+      const absDy = Math.abs(gestureState.dy);
+
+      if (absDx < TAP_THRESHOLD && absDy < TAP_THRESHOLD) {
+        handleTap();
+      }
+    },
+  });
 
   // Start Part A
   const startPartA = () => {
@@ -487,11 +496,7 @@ export default function L2WGame() {
       
       {phase === 'partA' || phase === 'transitionAB' || phase === 'idle' ? (
         <View style={styles.gameArea}>
-          <PartAGrid
-            grid={grid}
-            currentPiece={currentPiece}
-            onPressPiece={phase === 'partA' ? handleTap : undefined}
-          />
+          <PartAGrid grid={grid} currentPiece={currentPiece} />
           {phase === 'idle' && (
             <TouchableOpacity style={styles.tapArea} onPress={handleTap} activeOpacity={1}>
               <View style={styles.tapArea} />
