@@ -487,7 +487,11 @@ export default function L2WGame() {
       
       {phase === 'partA' || phase === 'transitionAB' || phase === 'idle' ? (
         <View style={styles.gameArea}>
-          <PartAGrid grid={grid} currentPiece={currentPiece} />
+          <PartAGrid
+            grid={grid}
+            currentPiece={currentPiece}
+            onPressPiece={phase === 'partA' ? handleTap : undefined}
+          />
           {phase === 'idle' && (
             <TouchableOpacity style={styles.tapArea} onPress={handleTap} activeOpacity={1}>
               <View style={styles.tapArea} />
