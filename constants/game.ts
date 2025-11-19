@@ -66,7 +66,7 @@ export interface GameState {
 
 // L-Block patterns (for detection) - 5-cell L-shapes
 type LBlockType = 'RFB' | 'LFB';
-const L_BLOCK_SIZES = [3, 4, 5, 6] as const;
+const L_BLOCK_SIZES = [3] as const;
 
 const rotatePattern = (cells: number[][], size: number): number[][] =>
   cells.map(([row, col]) => [col, size - 1 - row]);
@@ -84,20 +84,28 @@ const patternKey = (cells: number[][]): string =>
 
 const createBasePattern = (size: number, type: LBlockType): number[][] => {
   const cells: number[][] = [];
+  const seen = new Set<string>();
+  const addCell = (row: number, col: number) => {
+    const key = `${row},${col}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      cells.push([row, col]);
+    }
+  };
 
   if (type === 'RFB') {
     for (let row = 0; row < size; row++) {
-      cells.push([row, 0]);
-    }
-    for (let col = 0; col < size; col++) {
-      cells.push([size - 1, col]);
+      addCell(row, 0);
+    } 
+    for (let col = 1; col < size; col++) {
+      addCell(size - 1, col);
     }
   } else {
     for (let row = 0; row < size; row++) {
-      cells.push([row, size - 1]);
+      addCell(row, size - 1);
     }
-    for (let col = 0; col < size; col++) {
-      cells.push([size - 1, col]);
+    for (let col = 0; col < size - 1; col++) {
+      addCell(size - 1, col);
     }
   }
 
@@ -110,15 +118,11 @@ const generateLPatterns = (type: LBlockType): number[][][] => {
   L_BLOCK_SIZES.forEach((size) => {
     let current = createBasePattern(size, type);
     const seen = new Set<string>();
-
-    for (let i = 0; i < 4; i++) {
-      const normalized = normalizePattern(current);
-      const key = patternKey(normalized);
-      if (!seen.has(key)) {
-        seen.add(key);
-        patterns.push(normalized);
-      }
-      current = rotatePattern(current, size);
+    const normalized = normalizePattern(current);
+    const key = patternKey(normalized);
+    if (!seen.has(key)) {
+      seen.add(key);
+      patterns.push(normalized);
     }
   });
 

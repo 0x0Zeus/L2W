@@ -90,7 +90,6 @@ export function detectLBlocks(grid: number[][], patterns: number[][][]): number[
     // Find the maximum offset to determine bounds
     const maxDy = Math.max(...pattern.map(([dy]) => dy));
     const maxDx = Math.max(...pattern.map(([, dx]) => dx));
-    
     // Check bounds: pattern can fit within grid
     for (let y = 0; y <= GRID_SIZE - maxDy - 1; y++) {
       for (let x = 0; x <= GRID_SIZE - maxDx - 1; x++) {
@@ -100,7 +99,6 @@ export function detectLBlocks(grid: number[][], patterns: number[][][]): number[
         for (let [dy, dx] of pattern) {
           const gy = y + dy;
           const gx = x + dx;
-          
           if (gy >= GRID_SIZE || gx >= GRID_SIZE || gy < 0 || gx < 0 || grid[gy][gx] === 0) {
             match = false;
             break;
@@ -111,12 +109,7 @@ export function detectLBlocks(grid: number[][], patterns: number[][][]): number[
         
         if (match) {
           // Check if all cells have the same color
-          const firstColor = grid[cells[0][0]][cells[0][1]];
-          const allSameColor = cells.every(([gy, gx]) => grid[gy][gx] === firstColor);
-          
-          if (allSameColor) {
-            found.push(cells);
-          }
+          found.push(cells)
         }
       }
     }
