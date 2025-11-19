@@ -150,24 +150,24 @@ export default function L2WGame() {
           while (hasChanges) {
             hasChanges = false;
             const lfbBlocks = detectLBlocks(updatedGrid, L_PATTERNS.LFB);
+            console.log("lfbBlocks", lfbBlocks)
             if (lfbBlocks.length > 0) {
-              lfbBlocks.forEach((cells) => {
-                updatedGrid = removeCells(updatedGrid, cells);
-              });
-              totalLFBs += lfbBlocks.length;
-              totalScore += SCORES.LFB * lfbBlocks.length;
+              updatedGrid = removeCells(updatedGrid, lfbBlocks[0]);
+              totalLFBs += 1;
+              totalScore += SCORES.LFB;
               hasChanges = true;
               setGrid(updatedGrid);
+              continue;
             }
             const rfbBlocks = detectLBlocks(updatedGrid, L_PATTERNS.RFB);
+            console.log("rfbBlocks", rfbBlocks)
             if (rfbBlocks.length > 0) {
-              rfbBlocks.forEach((cells) => {
-                updatedGrid = removeCells(updatedGrid, cells);
-              });
-              totalRFBs += rfbBlocks.length;
-              totalScore += SCORES.RFB * rfbBlocks.length;
+              updatedGrid = removeCells(updatedGrid, rfbBlocks[0]);
+              totalRFBs += 1;
+              totalScore += SCORES.RFB;
               hasChanges = true;
               setGrid(updatedGrid);
+              continue;
             }
           }
 

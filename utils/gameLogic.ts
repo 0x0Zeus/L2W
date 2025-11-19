@@ -108,7 +108,6 @@ export function detectLBlocks(grid: number[][], patterns: number[][][]): number[
         }
         
         if (match) {
-          // Check if all cells have the same color
           found.push(cells)
         }
       }
