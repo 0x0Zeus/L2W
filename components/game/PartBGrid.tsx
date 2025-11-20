@@ -371,6 +371,7 @@ export default function PartBGrid({
           {
             left: relativeX - blockPixelSize / 2,
             top: relativeY - blockPixelSize / 2,
+            transform: [{ rotate: `${GRID_ROTATION_DEGREES}deg` }],
           },
         ]}
       >
