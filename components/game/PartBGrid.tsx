@@ -2,11 +2,11 @@ import { GAME_COLORS, GRID_SIZE, SCORES } from '@/constants/game';
 import { createEmptyGrid } from '@/utils/gameLogic';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  PanResponder,
-  type PanResponderInstance,
-  Text,
-  View,
-  useWindowDimensions,
+    PanResponder,
+    type PanResponderInstance,
+    Text,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 import { gameStyles } from '../../styles/styles';
 
@@ -474,52 +474,121 @@ export default function PartBGrid({
     [detectAllWBlocks, onWCountChange, onScoreChange]
   );
 
+  // Check for destroyed W-blocks and unmark pieces, decrease score/counter
+  const checkAndUnmarkDestroyedWBlocks = useCallback(
+    (piecesList: PieceState[], movedPieceId: string): PieceState[] => {
+      // Find W-blocks that include the moved piece
+      const currentWBlocks = detectAllWBlocks(piecesList);
+      const wBlockKeys = currentWBlocks.map((wb) => `${wb.rfbId}:${wb.lfbId}`);
+      
+      // Check which W-blocks were scored but no longer exist
+      setScoredWBlocks((prev) => {
+        const destroyed: string[] = [];
+        prev.forEach((key) => {
+          if (!wBlockKeys.includes(key)) {
+            destroyed.push(key);
+          }
+        });
+
+        if (destroyed.length > 0) {
+          // Remove destroyed W-blocks from scored set
+          const updated = new Set(prev);
+          destroyed.forEach((key) => updated.delete(key));
+          
+          // Decrease score and counter
+          onWCountChange?.(-destroyed.length);
+          onScoreChange?.(-SCORES.W_BLOCK * destroyed.length);
+          
+          return updated;
+        }
+        return prev;
+      });
+
+      // Unmark pieces that are no longer in W-blocks
+      const piecesInWBlocks = new Set<string>();
+      currentWBlocks.forEach((wb) => {
+        piecesInWBlocks.add(wb.rfbId);
+        piecesInWBlocks.add(wb.lfbId);
+      });
+
+      return piecesList.map((piece) => {
+        // If piece was marked as W-block but is no longer in a W-block, unmark it
+        if (piece.isWBlock && !piecesInWBlocks.has(piece.id)) {
+          return { ...piece, isWBlock: false };
+        }
+        return piece;
+      });
+    },
+    [detectAllWBlocks, onWCountChange, onScoreChange]
+  );
+
   // Continuously check for W-blocks and mark them (for color changes)
   useEffect(() => {
     if (pieces.length < 2) {
+      // If less than 2 pieces, unmark any remaining W-block pieces
+      setPieces((prev) => prev.map((p) => (p.isWBlock ? { ...p, isWBlock: false } : p)));
       return;
     }
 
     const wBlocks = detectAllWBlocks(pieces);
+    const wBlockKeys = wBlocks.map((wb) => `${wb.rfbId}:${wb.lfbId}`);
     
-    if (wBlocks.length > 0) {
-      // Mark all W-block pieces
-      let needsUpdate = false;
-      const updatedPieces = pieces.map((piece) => {
-        const isInWBlock = wBlocks.some(
-          (wb) => piece.id === wb.rfbId || piece.id === wb.lfbId
-        );
-        if (isInWBlock && !piece.isWBlock) {
-          needsUpdate = true;
-          return { ...piece, isWBlock: true };
+    // Check for destroyed W-blocks and score new ones in one update
+    setScoredWBlocks((prev) => {
+      const updated = new Set(prev);
+      let destroyedCount = 0;
+      let newCount = 0;
+
+      // Check for destroyed W-blocks
+      prev.forEach((key) => {
+        if (!wBlockKeys.includes(key)) {
+          updated.delete(key);
+          destroyedCount += 1;
         }
-        return piece;
       });
 
-      if (needsUpdate) {
-        setPieces(updatedPieces);
+      // Check for new W-blocks
+      wBlocks.forEach((wBlock) => {
+        const wBlockKey = `${wBlock.rfbId}:${wBlock.lfbId}`;
+        if (!prev.has(wBlockKey)) {
+          updated.add(wBlockKey);
+          newCount += 1;
+        }
+      });
+
+      // Update score and counter
+      const netChange = newCount - destroyedCount;
+      if (netChange !== 0) {
+        onWCountChange?.(netChange);
+        onScoreChange?.(SCORES.W_BLOCK * netChange);
       }
 
-      // Score all new W-blocks
-      setScoredWBlocks((prev) => {
-        const updated = new Set(prev);
-        let newCount = 0;
+      return updated;
+    });
 
-        wBlocks.forEach((wBlock) => {
-          const wBlockKey = `${wBlock.rfbId}:${wBlock.lfbId}`;
-          if (!prev.has(wBlockKey)) {
-            updated.add(wBlockKey);
-            newCount += 1;
-          }
-        });
+    // Mark/unmark pieces based on current W-blocks
+    const piecesInWBlocks = new Set<string>();
+    wBlocks.forEach((wb) => {
+      piecesInWBlocks.add(wb.rfbId);
+      piecesInWBlocks.add(wb.lfbId);
+    });
 
-        if (newCount > 0) {
-          onWCountChange?.(newCount);
-          onScoreChange?.(SCORES.W_BLOCK * newCount);
-        }
+    let needsUpdate = false;
+    const updatedPieces = pieces.map((piece) => {
+      const isInWBlock = piecesInWBlocks.has(piece.id);
+      if (isInWBlock && !piece.isWBlock) {
+        needsUpdate = true;
+        return { ...piece, isWBlock: true };
+      }
+      if (!isInWBlock && piece.isWBlock) {
+        needsUpdate = true;
+        return { ...piece, isWBlock: false };
+      }
+      return piece;
+    });
 
-        return updated;
-      });
+    if (needsUpdate) {
+      setPieces(updatedPieces);
     }
   }, [pieces, detectAllWBlocks, onWCountChange, onScoreChange]);
 
@@ -685,13 +754,17 @@ export default function PartBGrid({
         }
 
         const updated = [...prev];
-        // Preserve isWBlock status when moving
-        updated[index] = { ...candidate, isWBlock: prev[index].isWBlock };
+        updated[index] = candidate;
         moved = true;
         clearConflict();
 
-        // Check for W-block formation, score, and mark pieces (but don't remove pieces)
-        return checkAndScoreWBlock(updated);
+        // First check for destroyed W-blocks and unmark pieces
+        let result = checkAndUnmarkDestroyedWBlocks(updated, pieceId);
+        
+        // Then check for new W-block formations, score, and mark pieces
+        result = checkAndScoreWBlock(result);
+
+        return result;
       });
 
       if (!moved) {
@@ -701,7 +774,7 @@ export default function PartBGrid({
       setHiddenPieceId(null);
       return true;
     },
-    [clearConflict, checkAndScoreWBlock, setConflictState, validatePlacement]
+    [clearConflict, checkAndScoreWBlock, checkAndUnmarkDestroyedWBlocks, setConflictState, validatePlacement]
   );
 
   const rotatePiece = useCallback(
@@ -726,12 +799,18 @@ export default function PartBGrid({
 
         clearConflict();
         const updated = [...prev];
-        // Preserve isWBlock status when rotating
-        updated[index] = { ...candidate, isWBlock: prev[index].isWBlock };
-        return updated;
+        updated[index] = candidate;
+
+        // First check for destroyed W-blocks and unmark pieces
+        let result = checkAndUnmarkDestroyedWBlocks(updated, pieceId);
+        
+        // Then check for new W-block formations, score, and mark pieces
+        result = checkAndScoreWBlock(result);
+
+        return result;
       });
     },
-    [clearConflict, setConflictState, validatePlacement]
+    [checkAndScoreWBlock, checkAndUnmarkDestroyedWBlocks, clearConflict, setConflictState, validatePlacement]
   );
 
   /**
