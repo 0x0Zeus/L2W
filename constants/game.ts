@@ -32,7 +32,7 @@ export const PIECE_COLORS = [
 ];
 
 // Tetris-like piece shapes
-export type PieceShape = 'I' | 'O' | 'T' | 'S' | 'Z' | 'L' | 'J' | 'C' | 'P';
+export type PieceShape = 'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'O1' | 'O2' | 'O3' | 'T' | 'C' | 'P' | 'F';
 
 export interface Piece {
   shape: PieceShape;
@@ -98,7 +98,7 @@ const createBasePattern = (size: number, type: LBlockType): number[][] => {
     for (let row = 0; row < size; row++) {
       addCell(row, 0);
     } 
-    for (let col = 1; col < size; col++) {
+    for (let col = 1; col < size - 1; col++) {
       addCell(size - 1, col);
     }
   } else {
@@ -164,32 +164,27 @@ export const W_PATTERNS = generateWPatterns();
 
 // Standard Tetris pieces
 export const PIECE_SHAPES: Record<PieceShape, number[][]> = {
-  I: [[1, 1, 1, 1]],
-  O: [
+  I1: [[1]],
+  I2: [[1, 1]],
+  I3: [[1, 1, 1]],
+  I4: [[1, 1, 1, 1]],
+  I5: [[1, 1, 1, 1, 1]],
+  O1: [
     [1, 1],
     [1, 1],
   ],
-  T: [
-    [0, 1, 0],
+  O2: [
+    [1, 1, 1],
     [1, 1, 1],
   ],
-  S: [
-    [0, 1, 1],
-    [1, 1, 0],
+  O3: [
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1],
   ],
-  Z: [
-    [1, 1, 0],
-    [0, 1, 1],
-  ],
-  L: [
-    [1, 0],
-    [1, 0],
-    [1, 1],
-  ],
-  J: [
-    [0, 1],
-    [0, 1],
-    [1, 1],
+  T: [
+    [1, 1, 1],
+    [0, 1, 0],
   ],
   C: [
     [1, 1],
@@ -200,6 +195,11 @@ export const PIECE_SHAPES: Record<PieceShape, number[][]> = {
     [1, 1],
     [1, 1],
     [1, 0],
+  ],
+  F: [
+    [1, 1, 1],
+    [1, 1, 0],
+    [1, 0, 0],
   ],
 };
 

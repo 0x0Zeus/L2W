@@ -2,7 +2,11 @@ import { GRID_SIZE, Piece, PIECE_COLORS, PIECE_SHAPES, PieceShape } from '@/cons
 
 // Generate random piece
 export function generateRandomPiece(): Piece {
-  const shapes: PieceShape[] = ['I', 'O', 'T', 'S', 'Z', 'L', 'J', 'C', 'P'];
+  const shapes: PieceShape[] = [
+    'I1', 'I2', 'I3', 'I4', 'I5', // I variants
+    'O1', 'O2', 'O3', // O variants
+    'T', 'C', 'P', 'F', // Other pieces
+  ];
   const shape = shapes[Math.floor(Math.random() * shapes.length)];
   const colorIndex = Math.floor(Math.random() * PIECE_COLORS.length);
   
