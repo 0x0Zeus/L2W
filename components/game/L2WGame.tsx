@@ -154,7 +154,7 @@ export default function L2WGame() {
             onStartPartA={handleStartPartA}
             onTransition={handleTransition}
           />
-        ) : (
+        ) : phase !== 'complete' ? (
           <PartBGrid
             rfbCount={rfbCount}
             lfbCount={lfbCount}
@@ -166,7 +166,7 @@ export default function L2WGame() {
             onScoreChange={handleScoreChange}
             onPartBEnd={handlePartBEnd}
           />
-        )}
+        ) : null}
       </View>
 
       {renderCompletionScreen}
