@@ -2,11 +2,11 @@ import { GAME_COLORS, GRID_SIZE, SCORES } from '@/constants/game';
 import { createEmptyGrid } from '@/utils/gameLogic';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  PanResponder,
-  type PanResponderInstance,
-  Text,
-  View,
-  useWindowDimensions,
+    PanResponder,
+    type PanResponderInstance,
+    Text,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 import { gameStyles } from '../../styles/styles';
 
@@ -761,6 +761,7 @@ export default function PartBGrid({
         }
 
         placed = true;
+        // Clear conflict state synchronously to allow immediate interaction
         clearConflict();
 
         if (type === 'RFB') {
@@ -1070,6 +1071,10 @@ export default function PartBGrid({
             return false;
           }
 
+          // Clear any stale conflict state when starting a new interaction with a valid piece
+          // This ensures pieces can be interacted with immediately after placement
+          clearConflict();
+
           boardInteractionRef.current = {
             pieceId: piece.id,
             offsetRow: cell.row - piece.anchorRow,
@@ -1144,14 +1149,19 @@ export default function PartBGrid({
 
             if (current) {
               const success = handleDrop(current, dropX, dropY);
-
-              if (!success) {
-                setHiddenPieceId(null);
+              // Always clear hiddenPieceId after drop attempt
+              setHiddenPieceId(null);
+              
+              // Clear conflict state on successful drop to allow immediate interaction
+              if (success) {
+                clearConflict();
               }
             } else {
               setHiddenPieceId(null);
             }
           } else {
+            // Tap/rotate - clear any conflict state first
+            clearConflict();
             rotatePiece(context.pieceId);
           }
 
