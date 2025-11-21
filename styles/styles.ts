@@ -15,7 +15,7 @@ export const gameStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
-    padding: 10,
+    padding: 5,
     minHeight: 200,
   },
   completeContainer: {
@@ -37,7 +37,7 @@ export const gameStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 4,
     backgroundColor: GAME_COLORS.background,
     flexWrap: 'wrap',
   },
@@ -81,7 +81,8 @@ export const gameStyles = StyleSheet.create({
   },
   controlsContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 8,
+    paddingBottom: 10,
   },
 
   // PartBGrid styles
@@ -95,7 +96,7 @@ export const gameStyles = StyleSheet.create({
     backgroundColor: GAME_COLORS.background,
     borderWidth: 1,
     borderColor: GAME_COLORS.gridLine,
-    margin: 50,
+    margin: 20,
   },
   countersContainer: {
     flexDirection: 'row',
@@ -103,6 +104,7 @@ export const gameStyles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     backgroundColor: GAME_COLORS.background,
+    paddingVertical: 4,
   },
   counter: {
     alignItems: 'center',
@@ -115,7 +117,7 @@ export const gameStyles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   counterLetter: {
     fontWeight: 'bold',
@@ -154,7 +156,7 @@ export const gameStyles = StyleSheet.create({
   countersContainerPartA: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 10,
+    paddingVertical: 4,
     backgroundColor: GAME_COLORS.background,
   },
   counterItem: {
@@ -165,14 +167,14 @@ export const gameStyles = StyleSheet.create({
   },
   counterNumberText: {
     fontWeight: 'bold',
-    marginTop: 4,
+    marginTop: 2,
   },
 
   // TransitionMessage styles
   transitionContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: 8,
   },
   message: {
     fontWeight: 'bold',

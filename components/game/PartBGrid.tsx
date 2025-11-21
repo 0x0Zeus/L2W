@@ -1383,7 +1383,7 @@ export default function PartBGrid({
         </View>
       </View>
 
-      <View style={gameStyles.countersContainer}>
+      <View style={[gameStyles.countersContainer, { marginTop: 4 }]}>
         {renderCounter('RFB', availableRfbCount, GAME_COLORS.lCounter, 'L')}
         {renderCounter('LFB', availableLfbCount, GAME_COLORS.jCounter, '⅃')}
         {renderCounter('W', wCount, GAME_COLORS.wCounter, 'W')}

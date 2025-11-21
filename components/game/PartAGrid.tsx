@@ -23,13 +23,13 @@ import {
     PanResponder,
     PanResponderGestureState,
     Platform,
+    Text,
     View,
     useWindowDimensions,
 } from 'react-native';
 import { gameStyles } from '../../styles/styles';
 import Counters from './Counters';
 import GameButton from './GameButton';
-import TransitionMessage from './TransitionMessage';
 
 // Constants
 const MIN_CELL_SIZE = 10;
@@ -98,6 +98,7 @@ export default function PartAGrid({
   const [currentPiece, setCurrentPiece] = useState<Piece | null>(null);
   const [nextPiece, setNextPiece] = useState<Piece | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
+  const [transitionStage, setTransitionStage] = useState<'redFail' | 'greenFailForward' | 'button'>('redFail');
 
   // Refs for interval management and gesture handling
   const fallIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -499,6 +500,39 @@ export default function PartAGrid({
     </View>
   );
 
+  // Manage transition sequence: red Fail -> green Fail forward? -> button
+  useEffect(() => {
+    if (phase === 'transitionAB') {
+      // Reset to red Fail when transition starts
+      setTransitionStage('redFail');
+      
+      // After 1 second, show green Fail forward?
+      const timer1 = setTimeout(() => {
+        setTransitionStage('greenFailForward');
+      }, 1000);
+      
+      // After 2 seconds total, show button
+      const timer2 = setTimeout(() => {
+        setTransitionStage('button');
+      }, 2000);
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    } else {
+      // Reset when not in transition
+      setTransitionStage('redFail');
+    }
+  }, [phase]);
+
+  // Calculate letter size to match counters
+  const letterSize = useMemo(() => {
+    const isSmallScreen = width < 400;
+    const isVerySmall = width < 320;
+    return isVerySmall ? 20 : isSmallScreen ? 28 : 36;
+  }, [width]);
+
   /**
    * Renders Part A control buttons
    */
@@ -514,14 +548,27 @@ export default function PartAGrid({
     if (phase === 'transitionAB') {
       return (
         <View style={gameStyles.controlsContainer}>
-          <TransitionMessage showFail={true} showFailForward={true} showDoIt={false} />
-          <GameButton title="START" onPress={onTransition} />
+          <View style={gameStyles.transitionContainer}>
+            {transitionStage === 'redFail' && (
+              <Text style={[gameStyles.message, gameStyles.fail, { fontSize: letterSize }]}>Fail</Text>
+            )}
+            {(transitionStage === 'greenFailForward' || transitionStage === 'button') && (
+              <Text style={[gameStyles.message, gameStyles.failForward, { fontSize: letterSize }]}>
+                Fail forward?
+              </Text>
+            )}
+            {transitionStage === 'button' && (
+              <View style={{ marginTop: 10 }}>
+                <GameButton title="START" onPress={onTransition} />
+              </View>
+            )}
+          </View>
         </View>
       );
     }
 
     return null;
-  }, [phase, handleStartPartA, onTransition]);
+  }, [phase, transitionStage, letterSize, handleStartPartA, onTransition]);
 
   return (
     <View {...(phase === 'partA' ? panResponder.panHandlers : {})}>
@@ -529,7 +576,9 @@ export default function PartAGrid({
         {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
       </View>
 
-      <Counters rfbCount={rfbCount} lfbCount={lfbCount} wCount={wCount} />
+      <View style={{ marginTop: 4 }}>
+        <Counters rfbCount={rfbCount} lfbCount={lfbCount} wCount={wCount} />
+      </View>
 
       {renderControls()}
     </View>
