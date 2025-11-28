@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { GAME_COLORS } from '@/constants/game';
 
-/**
- * Unified styles for all game components
- */
 export const gameStyles = StyleSheet.create({
   // L2WGame styles
   container: {
@@ -16,6 +13,7 @@ export const gameStyles = StyleSheet.create({
     justifyContent: 'center',
     display: 'flex',
     padding: 5,
+    paddingTop: 2,
     minHeight: 200,
   },
   completeContainer: {
@@ -34,10 +32,10 @@ export const gameStyles = StyleSheet.create({
   // GameHeader styles
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 2,
     backgroundColor: GAME_COLORS.background,
     flexWrap: 'wrap',
   },
@@ -48,15 +46,18 @@ export const gameStyles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     color: GAME_COLORS.title,
+    textAlign: 'center',
   },
   subtitle: {
     color: GAME_COLORS.subtitle,
+    textAlign: 'center',
   },
   infoContainer: {
     flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 10,
   },
   score: {
     fontWeight: 'bold',
@@ -141,7 +142,7 @@ export const gameStyles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 10,
+    marginVertical: 6,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -177,7 +178,6 @@ export const gameStyles = StyleSheet.create({
     paddingVertical: 8,
   },
   message: {
-    fontWeight: 'bold',
     marginVertical: 5,
   },
   fail: {

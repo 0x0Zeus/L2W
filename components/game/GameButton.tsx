@@ -11,9 +11,11 @@ interface GameButtonProps {
 export default function GameButton({ title, onPress, disabled }: GameButtonProps) {
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 400;
-  const fontSize = isSmallScreen ? 20 : 24;
-  const paddingHorizontal = isSmallScreen ? 30 : 40;
-  const paddingVertical = isSmallScreen ? 12 : 15;
+  const isVerySmall = width < 320;
+  // Smaller button size to match transition button
+  const fontSize = isVerySmall ? 14 : isSmallScreen ? 16 : 18;
+  const paddingHorizontal = isVerySmall ? 20 : isSmallScreen ? 24 : 28;
+  const paddingVertical = isVerySmall ? 8 : isSmallScreen ? 10 : 12;
   
   return (
     <TouchableOpacity

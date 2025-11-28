@@ -6,49 +6,33 @@ import GameHeader from './GameHeader';
 import PartAGrid from './PartAGrid';
 import PartBGrid from './PartBGrid';
 
-// Constants
 const RESPONSIVE_BREAKPOINT = 400;
 
-/**
- * L2WGame Component
- *
- * Main coordinator component that manages:
- * - Overall game state (phase, score, level)
- * - Block counts (shared between Part A and Part B)
- * - Phase transitions
- * - High-level coordination between Part A and Part B
- */
 export default function L2WGame() {
   const { width } = useWindowDimensions();
 
-  // Overall game state
+  const isSmallScreen = width < 400;
+  const isVerySmall = width < 320;
+  const infoSize = isVerySmall ? 12 : isSmallScreen ? 14 : 18;
+
   const [phase, setPhase] = useState<GamePhase>('idle');
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [gameStarted, setGameStarted] = useState(false);
 
-  // Block counts (earned in Part A, used in Part B)
   const [rfbCount, setRfbCount] = useState(0);
   const [lfbCount, setLfbCount] = useState(0);
   const [wCount, setWCount] = useState(0);
 
-  // State for Part A (managed by PartAGrid but needed for coordination)
   const [partAGrid, setPartAGrid] = useState<number[][]>([]);
   const [currentPiece, setCurrentPiece] = useState<any>(null);
 
-  // State for Part B (managed by PartBGrid)
   const [partBGrid, setPartBGrid] = useState<number[][]>([]);
 
-  /**
-   * Starts Part A game phase
-   */
   const handleStartPartA = useCallback(() => {
     setPhase('partA');
   }, []);
 
-  /**
-   * Handles phase transitions
-   */
   const handleTransition = useCallback(() => {
     if (phase === 'transitionAB') {
       setPhase('partB');
@@ -57,66 +41,39 @@ export default function L2WGame() {
     }
   }, [phase]);
 
-  /**
-   * Handles score updates from Part A
-   */
   const handleScoreChange = useCallback((delta: number) => {
     setScore((prev) => prev + delta);
   }, []);
 
-  /**
-   * Handles RFB count updates from Part A
-   */
   const handleRfbCountChange = useCallback((delta: number) => {
     setRfbCount((prev) => prev + delta);
   }, []);
 
-  /**
-   * Handles LFB count updates from Part A
-   */
   const handleLfbCountChange = useCallback((delta: number) => {
     setLfbCount((prev) => prev + delta);
   }, []);
 
-  /**
-   * Handles W count updates from Part B
-   */
   const handleWCountChange = useCallback((delta: number) => {
     setWCount((prev) => prev + delta);
   }, []);
 
-  /**
-   * Handles RFB count updates from Part B (when placing blocks)
-   */
   const handlePartBRfbCountChange = useCallback((delta: number) => {
     setRfbCount((prev) => Math.max(0, prev + delta));
   }, []);
 
-  /**
-   * Handles LFB count updates from Part B (when placing blocks)
-   */
   const handlePartBLfbCountChange = useCallback((delta: number) => {
     setLfbCount((prev) => Math.max(0, prev + delta));
   }, []);
 
-  /**
-   * Handles Part B end
-   */
   const handlePartBEnd = useCallback(() => {
     setPhase('complete');
   }, []);
 
-  /**
-   * Determines if Part A phase is active or transitioning
-   */
   const isPartAPhase = useMemo(
     () => phase === 'partA' || phase === 'transitionAB' || phase === 'idle',
     [phase]
   );
 
-  /**
-   * Renders completion screen
-   */
   const renderCompletionScreen = useMemo(() => {
     if (phase !== 'complete') return null;
 
@@ -135,7 +92,7 @@ export default function L2WGame() {
 
   return (
     <View style={gameStyles.container}>
-      <GameHeader score={score} level={level} />
+      <GameHeader />
 
       <View style={gameStyles.gameArea}>
         {isPartAPhase ? (
@@ -144,6 +101,8 @@ export default function L2WGame() {
             rfbCount={rfbCount}
             lfbCount={lfbCount}
             wCount={wCount}
+            level={level}
+            score={score}
             onGridChange={setPartAGrid}
             onCurrentPieceChange={setCurrentPiece}
             onScoreChange={handleScoreChange}

@@ -30,6 +30,7 @@ import {
 import { gameStyles } from '../../styles/styles';
 import Counters from './Counters';
 import GameButton from './GameButton';
+import GameInfo from './GameInfo';
 
 // Constants
 const MIN_CELL_SIZE = 10;
@@ -46,6 +47,8 @@ interface PartAGridProps {
   rfbCount: number;
   lfbCount: number;
   wCount: number;
+  level: number;
+  score: number;
   onGridChange: (grid: number[][]) => void;
   onCurrentPieceChange: (piece: Piece | null) => void;
   onScoreChange: (score: number) => void;
@@ -81,6 +84,8 @@ export default function PartAGrid({
   rfbCount,
   lfbCount,
   wCount,
+  level,
+  score,
   onGridChange,
   onCurrentPieceChange,
   onScoreChange,
@@ -92,7 +97,7 @@ export default function PartAGrid({
   onTransition,
 }: PartAGridProps) {
   const { width, height } = useWindowDimensions();
-
+  
   // Part A state
   const [grid, setGrid] = useState<number[][]>(createEmptyGrid());
   const [currentPiece, setCurrentPiece] = useState<Piece | null>(null);
@@ -550,11 +555,11 @@ export default function PartAGrid({
         <View style={gameStyles.controlsContainer}>
           <View style={gameStyles.transitionContainer}>
             {transitionStage === 'redFail' && (
-              <Text style={[gameStyles.message, gameStyles.fail, { fontSize: letterSize }]}>Fail</Text>
+              <Text style={[gameStyles.message, gameStyles.fail, { fontSize: letterSize * 0.7, fontWeight: 'normal', textTransform: 'uppercase' }]}>FAIL</Text>
             )}
             {(transitionStage === 'greenFailForward' || transitionStage === 'button') && (
-              <Text style={[gameStyles.message, gameStyles.failForward, { fontSize: letterSize }]}>
-                Fail forward?
+              <Text style={[gameStyles.message, gameStyles.failForward, { fontSize: letterSize * 0.7, fontWeight: 'normal', textTransform: 'uppercase' }]}>
+                FAIL FORWARD?
               </Text>
             )}
             {transitionStage === 'button' && (
@@ -572,6 +577,8 @@ export default function PartAGrid({
 
   return (
     <View {...(phase === 'partA' ? panResponder.panHandlers : {})}>
+      <GameInfo level={level} score={score} />
+      
       <View style={gameStyles.gridContainer}>
         {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
       </View>

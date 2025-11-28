@@ -10,7 +10,10 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "export": "expo export --platform android",
-    "build:android": "expo export --platform android && cd android && gradlew assembleRelease"
+    "build:android": "expo export --platform android && cd android && gradlew assembleRelease",
+    "build:android:release": "expo export --platform android && cd android && gradlew assembleRelease",
+    "build:android:release:arm64": "expo export --platform android && cd android && gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a",
+    "build:android:universal": "expo export --platform android && cd android && gradlew bundleRelease"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
