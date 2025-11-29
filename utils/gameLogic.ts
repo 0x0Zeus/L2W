@@ -1,18 +1,27 @@
 import { GRID_SIZE, Piece, PIECE_COLORS, PIECE_SHAPES, PieceShape } from '@/constants/game';
 
 // Generate random piece
-export function generateRandomPiece(): Piece {
+// lastColor: optional parameter to prevent consecutive same colors
+export function generateRandomPiece(lastColor?: string): Piece {
   const shapes: PieceShape[] = [
     'I1', 'I2', 'I3', 'I4', 'I5', // I variants
     'O1', 'O2', 'O3', // O variants
     'T', 'C', 'P', 'F', // Other pieces
   ];
   const shape = shapes[Math.floor(Math.random() * shapes.length)];
-  const colorIndex = Math.floor(Math.random() * PIECE_COLORS.length);
+  
+  // Filter out the last color to prevent consecutive same colors
+  const availableColors = lastColor
+    ? PIECE_COLORS.filter(color => color !== lastColor)
+    : PIECE_COLORS;
+  
+  // If all colors were filtered out (shouldn't happen), use all colors
+  const colorsToUse = availableColors.length > 0 ? availableColors : PIECE_COLORS;
+  const colorIndex = Math.floor(Math.random() * colorsToUse.length);
   
   return {
     shape,
-    color: PIECE_COLORS[colorIndex],
+    color: colorsToUse[colorIndex],
     cells: PIECE_SHAPES[shape],
     x: Math.floor(GRID_SIZE / 2) - Math.floor(PIECE_SHAPES[shape][0].length / 2),
     y: 0,

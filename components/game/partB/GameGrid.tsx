@@ -1,13 +1,14 @@
 import { GRID_SIZE } from '@/constants/game';
-import React from 'react';
-import { View } from 'react-native';
+import React, { useMemo } from 'react';
+import { useWindowDimensions, View } from 'react-native';
 import { gameStyles } from '../../../styles/styles';
-import { GRID_ROTATION_DEGREES } from './constants';
+import { GRID_ROTATION_DEGREES, ROTATION_FACTOR } from './constants';
 import { GridCell } from './GridCell';
 
 interface GameGridProps {
   displayGrid: number[][];
   cellSize: number;
+  margin: number;
   conflictCellSet: Set<string>;
   blockingCellSet: Set<string>;
   gridRef: React.RefObject<View | null>;
@@ -17,6 +18,7 @@ interface GameGridProps {
 export const GameGrid: React.FC<GameGridProps> = ({
   displayGrid,
   cellSize,
+  margin,
   conflictCellSet,
   blockingCellSet,
   gridRef,
@@ -47,16 +49,30 @@ export const GameGrid: React.FC<GameGridProps> = ({
     </View>
   );
 
+  // Calculate grid dimensions
+  const gridSize = cellSize * GRID_SIZE;
+  // When rotated 45°, the diagonal becomes the visible height
+  // Diagonal of square = side * √2
+  const diagonalLength = gridSize * ROTATION_FACTOR;
+
+  const containerStyle = useMemo(
+    () => [
+      gameStyles.gridContainerRotated,
+      {
+        width: gridSize,
+        height: gridSize,
+        margin,
+        transform: [{ rotate: `${GRID_ROTATION_DEGREES}deg` }],
+      },
+    ],
+    [gridSize]
+  );
+
   return (
     <View
       ref={gridRef}
       onLayout={onLayout}
-      style={[
-        gameStyles.gridContainerRotated,
-        {
-          transform: [{ rotate: `${GRID_ROTATION_DEGREES}deg` }],
-        },
-      ]}
+      style={containerStyle}
     >
       {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
     </View>

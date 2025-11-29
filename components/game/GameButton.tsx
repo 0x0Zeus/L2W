@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { gameStyles } from '../../styles/styles';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface GameButtonProps {
   title: string;
@@ -8,12 +9,12 @@ interface GameButtonProps {
   disabled?: boolean;
 }
 
+/**
+ * Reusable game button component
+ */
 export default function GameButton({ title, onPress, disabled }: GameButtonProps) {
-  const { width } = useWindowDimensions();
-  const isSmallScreen = width < 400;
-  const isVerySmall = width < 320;
-  // Smaller button size to match transition button
-  const fontSize = isVerySmall ? 14 : isSmallScreen ? 16 : 18;
+  const { isSmallScreen, isVerySmall, button } = useResponsive();
+  
   const paddingHorizontal = isVerySmall ? 20 : isSmallScreen ? 24 : 28;
   const paddingVertical = isVerySmall ? 8 : isSmallScreen ? 10 : 12;
   
@@ -27,7 +28,7 @@ export default function GameButton({ title, onPress, disabled }: GameButtonProps
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={[gameStyles.buttonText, { fontSize }]}>{title}</Text>
+      <Text style={[gameStyles.buttonText, { fontSize: button }]}>{title}</Text>
     </TouchableOpacity>
   );
 }

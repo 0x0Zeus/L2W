@@ -1,94 +1,39 @@
-import { GamePhase } from '@/constants/game';
-import React, { useCallback, useMemo, useState } from 'react';
-import { Text, useWindowDimensions, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
+import { useGameState } from '../../hooks/useGameState';
 import { gameStyles } from '../../styles/styles';
+import CompletionScreen from './CompletionScreen';
 import GameHeader from './GameHeader';
 import PartAGrid from './PartAGrid';
 import PartBGrid from './PartBGrid';
 
-const RESPONSIVE_BREAKPOINT = 400;
-
+/**
+ * Main game component - orchestrates game phases and state
+ * Simplified to focus on high-level flow
+ */
 export default function L2WGame() {
-  const { width } = useWindowDimensions();
-
-  const isSmallScreen = width < 400;
-  const isVerySmall = width < 320;
-  const infoSize = isVerySmall ? 12 : isSmallScreen ? 14 : 18;
-
-  const [phase, setPhase] = useState<GamePhase>('idle');
-  const [score, setScore] = useState(0);
-  const [level, setLevel] = useState(1);
-  const [gameStarted, setGameStarted] = useState(false);
-
-  const [rfbCount, setRfbCount] = useState(0);
-  const [lfbCount, setLfbCount] = useState(0);
-  const [wCount, setWCount] = useState(0);
-
-  const [partAGrid, setPartAGrid] = useState<number[][]>([]);
-  const [currentPiece, setCurrentPiece] = useState<any>(null);
-
-  const [partBGrid, setPartBGrid] = useState<number[][]>([]);
-
-  const handleStartPartA = useCallback(() => {
-    setPhase('partA');
-  }, []);
-
-  const handleTransition = useCallback(() => {
-    if (phase === 'transitionAB') {
-      setPhase('partB');
-    } else if (phase === 'transitionBA') {
-      setPhase('partA');
-    }
-  }, [phase]);
-
-  const handleScoreChange = useCallback((delta: number) => {
-    setScore((prev) => prev + delta);
-  }, []);
-
-  const handleRfbCountChange = useCallback((delta: number) => {
-    setRfbCount((prev) => prev + delta);
-  }, []);
-
-  const handleLfbCountChange = useCallback((delta: number) => {
-    setLfbCount((prev) => prev + delta);
-  }, []);
-
-  const handleWCountChange = useCallback((delta: number) => {
-    setWCount((prev) => prev + delta);
-  }, []);
-
-  const handlePartBRfbCountChange = useCallback((delta: number) => {
-    setRfbCount((prev) => Math.max(0, prev + delta));
-  }, []);
-
-  const handlePartBLfbCountChange = useCallback((delta: number) => {
-    setLfbCount((prev) => Math.max(0, prev + delta));
-  }, []);
-
-  const handlePartBEnd = useCallback(() => {
-    setPhase('complete');
-  }, []);
+  const gameState = useGameState();
 
   const isPartAPhase = useMemo(
-    () => phase === 'partA' || phase === 'transitionAB' || phase === 'idle',
-    [phase]
+    () => gameState.phase === 'partA' || gameState.phase === 'transitionAB' || gameState.phase === 'idle',
+    [gameState.phase]
   );
 
-  const renderCompletionScreen = useMemo(() => {
-    if (phase !== 'complete') return null;
+  const handleTransition = () => {
+    if (gameState.phase === 'transitionAB') {
+      gameState.setPhase('partB');
+    } else if (gameState.phase === 'transitionBA') {
+      gameState.setPhase('partA');
+    }
+  };
 
-    const isSmallScreen = width < RESPONSIVE_BREAKPOINT;
-    return (
-      <View style={gameStyles.completeContainer}>
-        <Text style={[gameStyles.completeText, { fontSize: isSmallScreen ? 32 : 42 }]}>
-          LEVEL COMPLETE!
-        </Text>
-        <Text style={[gameStyles.completeScore, { fontSize: isSmallScreen ? 18 : 24 }]}>
-          Final Score: {score}
-        </Text>
-      </View>
-    );
-  }, [phase, width, score]);
+  const handleStartPartA = () => {
+    gameState.setPhase('partA');
+  };
+
+  const handlePartBEnd = () => {
+    gameState.setPhase('complete');
+  };
 
   return (
     <View style={gameStyles.container}>
@@ -97,38 +42,39 @@ export default function L2WGame() {
       <View style={gameStyles.gameArea}>
         {isPartAPhase ? (
           <PartAGrid
-            phase={phase}
-            rfbCount={rfbCount}
-            lfbCount={lfbCount}
-            wCount={wCount}
-            level={level}
-            score={score}
-            onGridChange={setPartAGrid}
-            onCurrentPieceChange={setCurrentPiece}
-            onScoreChange={handleScoreChange}
-            onRfbCountChange={handleRfbCountChange}
-            onLfbCountChange={handleLfbCountChange}
-            onPhaseChange={setPhase}
-            onGameStartedChange={setGameStarted}
+            phase={gameState.phase}
+            rfbCount={gameState.rfbCount}
+            lfbCount={gameState.lfbCount}
+            wCount={gameState.wCount}
+            level={gameState.level}
+            score={gameState.score}
+            onScoreChange={gameState.updateScore}
+            onRfbCountChange={gameState.updateRfbCount}
+            onLfbCountChange={gameState.updateLfbCount}
+            onPhaseChange={gameState.setPhase}
             onStartPartA={handleStartPartA}
             onTransition={handleTransition}
           />
-        ) : phase !== 'complete' ? (
+        ) : gameState.phase !== 'complete' ? (
           <PartBGrid
-            rfbCount={rfbCount}
-            lfbCount={lfbCount}
-            wCount={wCount}
-            onGridChange={setPartBGrid}
-            onWCountChange={handleWCountChange}
-            onRfbCountChange={handlePartBRfbCountChange}
-            onLfbCountChange={handlePartBLfbCountChange}
-            onScoreChange={handleScoreChange}
+            rfbCount={gameState.rfbCount}
+            lfbCount={gameState.lfbCount}
+            wCount={gameState.wCount}
+            level={gameState.level}
+            score={gameState.score}
+            onGridChange={() => {}}
+            onWCountChange={gameState.updateWCount}
+            onRfbCountChange={gameState.updateRfbCount}
+            onLfbCountChange={gameState.updateLfbCount}
+            onScoreChange={gameState.updateScore}
             onPartBEnd={handlePartBEnd}
           />
         ) : null}
       </View>
 
-      {renderCompletionScreen}
+      {gameState.phase === 'complete' && (
+        <CompletionScreen score={gameState.score} />
+      )}
     </View>
   );
 }

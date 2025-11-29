@@ -1,22 +1,22 @@
 import { gameStyles } from "@/styles/styles";
-import { Text, useWindowDimensions, View } from "react-native";
+import { Text, View } from "react-native";
+import { useResponsive } from "../../hooks/useResponsive";
 
 interface GameInfoProps {
   level: number;
   score: number;
 }
 
+/**
+ * Displays level and score information
+ */
 export default function GameInfo({ level, score }: GameInfoProps) {
-  const { width } = useWindowDimensions();
-
-  const isSmallScreen = width < 400;
-  const isVerySmall = width < 320;
-  const infoSize = isVerySmall ? 12 : isSmallScreen ? 14 : 18;
+  const { info } = useResponsive();
 
   return (
     <View style={gameStyles.infoContainer}>
-      <Text style={[gameStyles.level, { fontSize: infoSize }]}>Level: {level}</Text>
-      <Text style={[gameStyles.score, { fontSize: infoSize }]}>Score: {score}</Text>
+      <Text style={[gameStyles.level, { fontSize: info }]}>Level: {level}</Text>
+      <Text style={[gameStyles.score, { fontSize: info }]}>Score: {score}</Text>
     </View>
   );
 }

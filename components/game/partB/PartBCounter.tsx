@@ -24,6 +24,7 @@ export const PartBCounter: React.FC<PartBCounterProps> = ({
 }) => {
   const { letter, number, square } = counterSizes;
   const isInteractive = type !== 'W';
+  const hasBorder = isInteractive; // Only L and ⅃ have borders (for dragging), W does not
 
   return (
     <View
@@ -39,7 +40,8 @@ export const PartBCounter: React.FC<PartBCounterProps> = ({
           {
             width: square,
             height: square,
-            borderColor: color,
+            borderColor: hasBorder ? color : 'transparent',
+            borderWidth: hasBorder ? 2 : 0,
           },
         ]}
       >

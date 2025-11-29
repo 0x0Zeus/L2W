@@ -81,6 +81,7 @@ export const gameStyles = StyleSheet.create({
     borderWidth: 0.5,
   },
   controlsContainer: {
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 10,
@@ -97,7 +98,6 @@ export const gameStyles = StyleSheet.create({
     backgroundColor: GAME_COLORS.background,
     borderWidth: 1,
     borderColor: GAME_COLORS.gridLine,
-    margin: 20,
   },
   countersContainer: {
     flexDirection: 'row',
@@ -143,6 +143,7 @@ export const gameStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 6,
+    maxWidth: 120,
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -161,6 +162,7 @@ export const gameStyles = StyleSheet.create({
     backgroundColor: GAME_COLORS.background,
   },
   counterItem: {
+    width: 30,
     alignItems: 'center',
   },
   counterLetterText: {
