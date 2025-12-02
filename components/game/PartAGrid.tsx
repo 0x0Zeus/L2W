@@ -9,6 +9,7 @@ import PartAGameGrid from './partA/PartAGameGrid';
 import { usePartAGameLogic } from './partA/usePartAGameLogic';
 import { usePartAGestures } from './partA/usePartAGestures';
 import { usePartAKeyboard } from './partA/usePartAKeyboard';
+import { usePartAGridSize } from '@/hooks/usePartAGridSize';
 
 /**
  * Part A Grid Component
@@ -72,8 +73,10 @@ export default function PartAGrid() {
     game.handleStartPartA();
   }, [gameLogic, game]);
 
+  const partAGridWidth = usePartAGridSize();
+
   return (
-    <View {...(game.phase === 'partA' ? panResponder.panHandlers : {})}>
+    <View {...(game.phase === 'partA' ? panResponder.panHandlers : {})} style={{ position: 'relative', minWidth: partAGridWidth, maxWidth: 500 }}>
       <GameInfo level={game.level} score={game.score} />
       
       <PartAGameGrid

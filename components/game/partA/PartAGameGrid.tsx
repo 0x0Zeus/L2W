@@ -90,7 +90,7 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
   const showFailForward = transitionStage === 'greenFailForward' || transitionStage === 'button';
 
   return (
-    <View style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth }}>
+    <View style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth, maxWidth: 500, maxHeight: 500 }}>
       <View style={gameStyles.gridContainer}>
         {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
       </View>

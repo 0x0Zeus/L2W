@@ -2,7 +2,6 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { PanResponder, type PanResponderInstance } from 'react-native';
 import { BLOCK_CENTER_OFFSET, MOVE_THRESHOLD_PX, TAP_THRESHOLD_PX } from './constants';
 import type { BlockType, DragState, GridBounds, PieceRotation, PieceState } from './types';
-import { getPieceCells } from './wBlockDetection';
 
 interface UsePartBDragDropProps {
   pieces: PieceState[];
@@ -29,6 +28,7 @@ interface UsePartBDragDropProps {
     pieceId: string,
     onConflict?: (conflicts: Array<{ row: number; col: number }>, blockingPieceIds: string[]) => void
   ) => void;
+  onRemovePiece: (pieceId: string) => void;
   onUpdateDraggingPiece?: (dragState: DragState | null) => void;
   onSetHiddenPieceId: (pieceId: string | null) => void;
   onSetConflictState: (payload: {
@@ -55,6 +55,7 @@ export function usePartBDragDrop({
   onPlaceNewPiece,
   onMoveExistingPiece,
   onRotatePiece,
+  onRemovePiece,
   onUpdateDraggingPiece,
   onSetHiddenPieceId,
   onSetConflictState,
@@ -78,8 +79,11 @@ export function usePartBDragDrop({
       const cell = convertPointToGridCell(pageX, pageY);
 
       if (!cell) {
+        // Dropped outside grid - remove the piece if it's from the board
         if (dragState.source === 'board' && dragState.pieceId) {
-          onSetConflictState({ pieceId: dragState.pieceId, cells: [], blockingPieceIds: [] });
+          onRemovePiece(dragState.pieceId);
+          onClearConflict();
+          return true;
         }
         return false;
       }
@@ -95,13 +99,13 @@ export function usePartBDragDrop({
 
       if (dragState.source === 'board' && dragState.pieceId) {
         return onMoveExistingPiece(dragState.pieceId, anchorRow, anchorCol, (conflicts, blockingPieceIds) => {
-          onSetConflictState({ pieceId: dragState.pieceId, cells: conflicts, blockingPieceIds });
+          onSetConflictState({ pieceId: dragState.pieceId ?? null, cells: conflicts, blockingPieceIds });
         });
       }
 
       return false;
     },
-    [convertPointToGridCell, onMoveExistingPiece, onPlaceNewPiece, onSetConflictState]
+    [convertPointToGridCell, onMoveExistingPiece, onPlaceNewPiece, onRemovePiece, onSetConflictState, onClearConflict]
   );
 
   const createCounterPanResponder = useCallback(
@@ -294,7 +298,9 @@ export function usePartBDragDrop({
       gridBounds,
       handleDrop,
       onRotatePiece,
+      onRemovePiece,
       onSetConflictState,
+      onClearConflict,
       onSetHiddenPieceId,
       updateDraggingPiece,
     ]

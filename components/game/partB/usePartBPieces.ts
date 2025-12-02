@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildGridFromPieces, getRotatedPattern } from './utils';
-import { detectAllWBlocks, getPieceCells } from './wBlockDetection';
-import { validatePlacement } from './pieceValidation';
 import { ROTATIONS } from './constants';
+import { validatePlacement } from './pieceValidation';
 import type { BlockType, PieceRotation, PieceState } from './types';
 import { useWBlockManager } from './useWBlockManager';
-import { GRID_SIZE } from '@/constants/game';
+import { buildGridFromPieces } from './utils';
+import { detectAllWBlocks, getPieceCells } from './wBlockDetection';
 
 interface UsePartBPiecesProps {
   initialRfbCount: number;
@@ -226,6 +225,40 @@ export function usePartBPieces({
     [checkAndScoreWBlock, checkAndUnmarkDestroyedWBlocks]
   );
 
+  const removePiece = useCallback(
+    (pieceId: string) => {
+      setPieces((prev) => {
+        const index = prev.findIndex((piece) => piece.id === pieceId);
+        if (index === -1) {
+          return prev;
+        }
+
+        const piece = prev[index];
+        const updated = prev.filter((p) => p.id !== pieceId);
+
+        // Return pieces to available count
+        if (piece.type === 'RFB') {
+          setAvailableRfbCount((prevCount) => prevCount + 1);
+          setTimeout(() => {
+            onRfbCountChange?.(1);
+          }, 0);
+        } else {
+          setAvailableLfbCount((prevCount) => prevCount + 1);
+          setTimeout(() => {
+            onLfbCountChange?.(1);
+          }, 0);
+        }
+
+        // Check and unmark destroyed W-blocks
+        let result = checkAndUnmarkDestroyedWBlocks(updated, pieceId);
+        result = checkAndScoreWBlock(result);
+
+        return result;
+      });
+    },
+    [checkAndScoreWBlock, checkAndUnmarkDestroyedWBlocks, onLfbCountChange, onRfbCountChange]
+  );
+
   const findPieceAtCell = useCallback(
     (row: number, col: number) =>
       pieces.find((piece) => getPieceCells(piece).some((cell) => cell.row === row && cell.col === col)),
@@ -240,6 +273,7 @@ export function usePartBPieces({
     placeNewPiece,
     moveExistingPiece,
     rotatePiece,
+    removePiece,
     findPieceAtCell,
   };
 }

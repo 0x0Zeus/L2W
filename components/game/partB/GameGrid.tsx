@@ -8,7 +8,6 @@ import { GridCell } from './GridCell';
 interface GameGridProps {
   displayGrid: number[][];
   cellSize: number;
-  margin: number;
   conflictCellSet: Set<string>;
   blockingCellSet: Set<string>;
   gridRef: React.RefObject<View | null>;
@@ -18,7 +17,6 @@ interface GameGridProps {
 export const GameGrid: React.FC<GameGridProps> = ({
   displayGrid,
   cellSize,
-  margin,
   conflictCellSet,
   blockingCellSet,
   gridRef,
@@ -59,9 +57,8 @@ export const GameGrid: React.FC<GameGridProps> = ({
     () => [
       gameStyles.gridContainerRotated,
       {
-        width: gridSize,
-        height: gridSize,
-        margin,
+        // width: gridSize,
+        // height: gridSize,
         transform: [{ rotate: `${GRID_ROTATION_DEGREES}deg` }],
       },
     ],

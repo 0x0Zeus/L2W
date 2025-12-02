@@ -12,7 +12,7 @@ export const gameStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
-    padding: 5,
+    padding: 20,
     paddingTop: 2,
     minHeight: 200,
   },

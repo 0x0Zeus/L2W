@@ -66,6 +66,7 @@ export default function PartBGrid() {
     onPlaceNewPiece: pieces.placeNewPiece,
     onMoveExistingPiece: pieces.moveExistingPiece,
     onRotatePiece: pieces.rotatePiece,
+    onRemovePiece: pieces.removePiece,
     onUpdateDraggingPiece: undefined, // Handled internally
     onSetHiddenPieceId: setHiddenPieceId,
     onSetConflictState: conflict.setConflictState,
@@ -121,7 +122,6 @@ export default function PartBGrid() {
         <GameGrid
           displayGrid={displayGrid}
           cellSize={layout.cellSize}
-          margin={layout.margin}
           conflictCellSet={conflict.conflictCellSet}
           blockingCellSet={blockingCellSet}
           gridRef={layout.gridRef}
