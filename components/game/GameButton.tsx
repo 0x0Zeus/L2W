@@ -15,7 +15,7 @@ interface GameButtonProps {
 export default function GameButton({ title, onPress, disabled }: GameButtonProps) {
   const { isSmallScreen, isVerySmall, button } = useResponsive();
   
-  const paddingHorizontal = isVerySmall ? 20 : isSmallScreen ? 24 : 28;
+  const paddingHorizontal = isVerySmall ? 8 : isSmallScreen ? 10 : 12;
   const paddingVertical = isVerySmall ? 8 : isSmallScreen ? 10 : 12;
   
   return (

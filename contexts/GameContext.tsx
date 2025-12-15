@@ -28,6 +28,7 @@ interface GameContextValue extends GameState {
   handleStartPartA: () => void;
   handlePartBEnd: () => void;
   handleRestart: () => void;
+  handleLevelUp: () => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -83,6 +84,16 @@ export function GameProvider({ children }: GameProviderProps) {
     gameState.reset();
   };
 
+  const handleLevelUp = () => {
+    // Increment level and reset game state, but keep the new level
+    gameState.setLevel(gameState.level + 1);
+    gameState.setPhase('idle');
+    gameState.setScore(0);
+    gameState.setRfbCount(0);
+    gameState.setLfbCount(0);
+    gameState.setWCount(0);
+  };
+
   const value: GameContextValue = useMemo(
     () => ({
       ...gameState,
@@ -94,6 +105,7 @@ export function GameProvider({ children }: GameProviderProps) {
       handleStartPartA,
       handlePartBEnd,
       handleRestart,
+      handleLevelUp,
     }),
     [gameState, isPartAPhase, isPartBPhase, isComplete, isIdle]
   );
