@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -71,6 +71,25 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [isReady]);
+
+  // Inject global CSS for web to disable user-select
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.textContent = `
+        * {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+      return () => {
+        document.head.removeChild(style);
+      };
+    }
+  }, []);
 
   if (!isReady) {
     return null;

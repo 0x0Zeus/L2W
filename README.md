@@ -83,6 +83,61 @@ npm run build:android:universal
 
 **Note:** If you encounter TLS/SSL errors during local builds, use EAS Build instead.
 
+## Deploying to Vercel (Web)
+
+This project is configured for deployment on Vercel. Follow these steps:
+
+### Option 1: Deploy via Vercel Dashboard (Recommended)
+
+1. **Push your code to GitHub/GitLab/Bitbucket**
+   ```bash
+   git add .
+   git commit -m "Configure Vercel deployment"
+   git push
+   ```
+
+2. **Import project on Vercel**
+   - Go to [vercel.com](https://vercel.com) and sign in
+   - Click "Add New Project"
+   - Import your repository
+   - Vercel will automatically detect the configuration from `vercel.json`
+   - Click "Deploy"
+
+### Option 2: Deploy via Vercel CLI
+
+1. **Install Vercel CLI**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Deploy**
+   ```bash
+   vercel
+   ```
+   
+   For production deployment:
+   ```bash
+   vercel --prod
+   ```
+
+### Build Configuration
+
+The project is configured with:
+- **Build Command**: `npm run build:web`
+- **Output Directory**: `dist`
+- **Framework**: Static export (Expo)
+
+The `vercel.json` file handles routing for client-side navigation with Expo Router.
+
+### Local Web Build
+
+To test the web build locally:
+```bash
+npm run build:web
+```
+
+The static files will be generated in the `dist` directory.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
