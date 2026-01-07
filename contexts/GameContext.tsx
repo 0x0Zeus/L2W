@@ -1,8 +1,9 @@
 import { GamePhase } from '@/constants/game';
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import React, { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useGameState, type GameState } from '../hooks/useGameState';
 
 interface GameContextValue extends GameState {
+  partAGridWidth: number;
   // Phase helpers
   isPartAPhase: boolean;
   isPartBPhase: boolean;
@@ -16,6 +17,7 @@ interface GameContextValue extends GameState {
   setRfbCount: (count: number) => void;
   setLfbCount: (count: number) => void;
   setWCount: (count: number) => void;
+  setPartAGridWidth: (width: number) => void;
   
   // Update functions (from useGameState)
   updateScore: (delta: number) => void;

@@ -137,7 +137,9 @@ export default function PartBGrid() {
 
   // Get blocking cell set for visual feedback
   const blockingCellSet = conflict.getBlockingCellSet(pieces.pieces);
-  const partAGridWidth = usePartAGridSize();
+  // Use partAGridWidth from context (calculated in Part A with measured height)
+  const initialGridSize = usePartAGridSize();
+  const partAGridWidth = game.partAGridWidth || initialGridSize;
 
   // Show overlay for completion stages (same pattern as Part A)
   const showCompletionOverlay = isComplete && !!completionStage;
@@ -145,7 +147,7 @@ export default function PartBGrid() {
   const showNiceTurnAround = completionStage === 'niceTurnAround' || completionStage === 'button';
 
   return (
-    <View ref={layout.containerRef} onLayout={layout.handleContainerLayout} >
+    <View ref={layout.containerRef} onLayout={layout.handleContainerLayout} style={{ flex: 1}}>
       <GameInfo 
         level={game.level} 
         score={game.score} 

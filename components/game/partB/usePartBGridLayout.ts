@@ -1,8 +1,9 @@
+import { GRID_SIZE } from '@/constants/game';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { GRID_SIZE } from '@/constants/game';
-import { GRID_ROTATION_DEGREES, MIN_CELL_SIZE, ROTATION_FACTOR } from './constants';
+import { useGameContext } from '../../../contexts/GameContext';
 import { usePartAGridSize } from '../../../hooks/usePartAGridSize';
+import { GRID_ROTATION_DEGREES, MIN_CELL_SIZE, ROTATION_FACTOR } from './constants';
 import type { GridBounds } from './types';
 
 /**
@@ -11,7 +12,10 @@ import type { GridBounds } from './types';
  * Part B grid's diagonal (when rotated 45°) matches Part A grid's width
  */
 export function usePartBGridLayout() {
-  const partAGridWidth = usePartAGridSize();
+  // Get partAGridWidth from GameContext (calculated in Part A with measured height)
+  const { partAGridWidth: contextGridWidth } = useGameContext();
+  const fallbackGridWidth = usePartAGridSize();
+  const partAGridWidth = contextGridWidth || fallbackGridWidth;
   const gridRef = useRef<View | null>(null);
   const containerRef = useRef<View | null>(null);
   const [gridBounds, setGridBounds] = useState<GridBounds | null>(null);

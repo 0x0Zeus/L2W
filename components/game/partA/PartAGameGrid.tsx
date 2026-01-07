@@ -1,25 +1,47 @@
 import { GAME_COLORS, GamePhase, GRID_SIZE, Piece, PIECE_COLORS } from '@/constants/game';
 import { usePartAGridSize } from '@/hooks/usePartAGridSize';
 import { TransitionStage } from '@/hooks/useTransitionStage';
-import React, { useMemo } from 'react';
-import { Text, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { useResponsive } from '../../../hooks/useResponsive';
 import { gameStyles } from '../../../styles/styles';
+
+const MIN_CELL_SIZE = 10;
+const MAX_GRID_WIDTH = 500;
+const GRID_PADDING = 40;
 
 interface PartAGameGridProps {
   grid: number[][];
   currentPiece: Piece | null;
   phase: GamePhase;
   transitionStage?: TransitionStage;
+  onGridSizeChange?: (size: number) => void;
 }
 
 /**
  * Renders the Part A game grid with cells and transition messages overlay
  */
-export default function PartAGameGrid({ grid, currentPiece, phase, transitionStage }: PartAGameGridProps) {
+export default function PartAGameGrid({ grid, currentPiece, phase, transitionStage, onGridSizeChange }: PartAGameGridProps) {
   const { letter } = useResponsive();
-  const partAGridWidth = usePartAGridSize();
+  const { width } = useWindowDimensions();
+  const initialGridSize = usePartAGridSize();
+  const [partAGridWidth, setPartAGridWidth] = useState<number>(initialGridSize);
   const cellSize = useMemo(() => (partAGridWidth - 2) / GRID_SIZE, [partAGridWidth]);
+  const gridContainerRef = useRef<View | null>(null);
+
+  const handleLayout = useCallback(() => {
+    if (gridContainerRef.current) {
+      gridContainerRef.current.measureInWindow((x, y, measuredWidth, measuredHeight) => {
+        // Calculate grid size using the same logic as usePartAGridSize
+        const availableWidth = Math.min(width - GRID_PADDING, MAX_GRID_WIDTH);
+        // Use the smaller of available width or measured height
+        const calculatedSize = Math.max(MIN_CELL_SIZE * GRID_SIZE, Math.min(availableWidth, measuredHeight));
+        setPartAGridWidth(calculatedSize);
+        // Notify parent of the calculated size
+        onGridSizeChange?.(calculatedSize);
+      });
+    }
+  }, [width, onGridSizeChange]);
 
   const getCellColors = (row: number, col: number) => {
     // Check if cell is part of the current falling piece
@@ -90,7 +112,11 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
   const showFailForward = transitionStage === 'greenFailForward' || transitionStage === 'button';
 
   return (
-    <View style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth, maxWidth: 500, maxHeight: 500 }}>
+    <View 
+      ref={gridContainerRef}
+      onLayout={handleLayout}
+      style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth, maxWidth: 500, maxHeight: 500, flex: 1 }}
+    >
       <View style={gameStyles.gridContainer}>
         {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
       </View>

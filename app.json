@@ -24,7 +24,28 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "L2W",
+      "shortName": "L2W",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#000000",
+      "backgroundColor": "#000000",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "icons": [
+        {
+          "src": "./assets/images/favicon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "./assets/images/favicon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
     },
     "plugins": [
       "expo-router",

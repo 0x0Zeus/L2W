@@ -8,6 +8,7 @@ export interface GameState {
   rfbCount: number;
   lfbCount: number;
   wCount: number;
+  partAGridWidth: number;
 }
 
 /**
@@ -21,6 +22,7 @@ export function useGameState(initialState?: Partial<GameState>) {
   const [rfbCount, setRfbCount] = useState(initialState?.rfbCount ?? 0);
   const [lfbCount, setLfbCount] = useState(initialState?.lfbCount ?? 0);
   const [wCount, setWCount] = useState(initialState?.wCount ?? 0);
+  const [partAGridWidth, setPartAGridWidth] = useState(initialState?.partAGridWidth ?? 305);
 
   const updateScore = useCallback((delta: number) => {
     setScore((prev) => prev + delta);
@@ -45,6 +47,7 @@ export function useGameState(initialState?: Partial<GameState>) {
     setRfbCount(0);
     setLfbCount(0);
     setWCount(0);
+    setPartAGridWidth(305);
   }, []);
 
   return {
@@ -55,6 +58,7 @@ export function useGameState(initialState?: Partial<GameState>) {
     rfbCount,
     lfbCount,
     wCount,
+    partAGridWidth,
     // Setters
     setPhase,
     setScore,
@@ -62,6 +66,7 @@ export function useGameState(initialState?: Partial<GameState>) {
     setRfbCount,
     setLfbCount,
     setWCount,
+    setPartAGridWidth,
     // Update functions
     updateScore,
     updateRfbCount,

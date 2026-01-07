@@ -74,10 +74,15 @@ export default function PartAGrid() {
     game.handleStartPartA();
   }, [gameLogic, game]);
 
-  const partAGridWidth = usePartAGridSize();
+  const initialGridSize = usePartAGridSize();
+  const partAGridWidth = game.partAGridWidth || initialGridSize;
+
+  const handleGridSizeChange = useCallback((size: number) => {
+    game.setPartAGridWidth(size);
+  }, [game]);
 
   return (
-    <View {...(game.phase === 'partA' ? panResponder.panHandlers : {})} style={{ position: 'relative', minWidth: partAGridWidth, maxWidth: 500 }}>
+    <View {...(game.phase === 'partA' ? panResponder.panHandlers : {})} style={{ position: 'relative', minWidth: partAGridWidth, maxWidth: 500, flex: 1 }}>
       <GameInfo level={game.level} score={game.score} />
       
       <PartAGameGrid
@@ -85,6 +90,7 @@ export default function PartAGrid() {
         currentPiece={gameLogic.currentPiece}
         phase={game.phase}
         transitionStage={transitionStage}
+        onGridSizeChange={handleGridSizeChange}
       />
 
       <View style={{ marginTop: 4 }}>

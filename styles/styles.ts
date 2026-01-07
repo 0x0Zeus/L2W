@@ -10,10 +10,9 @@ export const gameStyles = StyleSheet.create({
   gameArea: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     display: 'flex',
     padding: 20,
-    paddingTop: 2,
     minHeight: 200,
   },
   completeContainer: {
