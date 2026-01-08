@@ -24,7 +24,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.ico",
+      "favicon": "./assets/images/favicon-32x32.png",
       "name": "L2W",
       "shortName": "L2W",
       "lang": "en",
