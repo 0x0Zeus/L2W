@@ -69,7 +69,8 @@ export default function PartBGrid() {
     pieces: pieces.pieces,
     onPartBEnd: () => {
       setIsComplete(true);
-      game.handlePartBEnd();
+      // Don't change phase - let the sequential overlay handle the transition
+      // Button will call handleLevelUp when pressed
     },
   });
 
@@ -160,7 +161,24 @@ export default function PartBGrid() {
   const initialGridSize = usePartAGridSize();
   const partAGridWidth = game.partAGridWidth || initialGridSize;
 
-  // Show overlay for completion stages (same pattern as Part A)
+  // Calculate responsive font size for overlay messages
+  // Takes into account window size and grid width to prevent wrapping
+  const overlayFontSize = useMemo(() => {
+    // Base size from responsive hook (already accounts for window width)
+    const baseSize = letter * 1.2;
+    // Limit based on grid width to prevent wrapping
+    const maxSizeFromGrid = partAGridWidth / 10;
+    return Math.min(baseSize, maxSizeFromGrid);
+  }, [letter, partAGridWidth]);
+
+  const overlayFontSizeLong = useMemo(() => {
+    // For longer texts like "Level Complete!" (15 chars) or "Nice turn around!" (17 chars)
+    const baseSize = letter * 1.0;
+    const maxSizeFromGrid = partAGridWidth / 17;
+    return Math.min(baseSize, maxSizeFromGrid);
+  }, [letter, partAGridWidth]);
+
+  // Show overlay for completion stages - overlay stays visible even when button appears
   const showCompletionOverlay = isComplete && !!completionStage;
   const showLevelComplete = completionStage === 'levelComplete';
   const showNiceTurnAround = completionStage === 'niceTurnAround' || completionStage === 'button';
@@ -216,7 +234,7 @@ export default function PartBGrid() {
                   gameStyles.message,
                   gameStyles.failForward,
                   {
-                    fontSize: letter * 1.2,
+                    fontSize: overlayFontSize,
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
                     color: '#FF0000', // Red text
@@ -233,7 +251,7 @@ export default function PartBGrid() {
                   gameStyles.message,
                   gameStyles.failForward,
                   {
-                    fontSize: letter * 1.2,
+                    fontSize: overlayFontSizeLong,
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
                     color: '#00FF00', // Green text
@@ -246,6 +264,7 @@ export default function PartBGrid() {
           </View>
         )}
 
+        {/* Completion overlay */}
         {showCompletionOverlay && (
           <View
             style={{
@@ -254,7 +273,7 @@ export default function PartBGrid() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 100,
@@ -266,9 +285,10 @@ export default function PartBGrid() {
                   gameStyles.message,
                   gameStyles.failForward,
                   {
-                    fontSize: letter * 1.2,
+                    fontSize: overlayFontSizeLong,
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
+                    color: '#00FF00', // Green text
                   },
                 ]}
               >
@@ -281,9 +301,10 @@ export default function PartBGrid() {
                   gameStyles.message,
                   gameStyles.failForward,
                   {
-                    fontSize: letter * 1.2,
+                    fontSize: overlayFontSizeLong,
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
+                    color: '#00FF00', // Green text
                   },
                 ]}
               >
@@ -305,7 +326,10 @@ export default function PartBGrid() {
       </View>
 
       <PartBControls 
-        onLevelUp={game.handleLevelUp} 
+        onLevelUp={() => {
+          setIsComplete(false);
+          game.handleLevelUp();
+        }} 
         showLevelUp={completionStage === 'button'}
         onContinue={handleContinue}
         showContinue={showTimeUpOverlay && timeUpStage === 'button'}

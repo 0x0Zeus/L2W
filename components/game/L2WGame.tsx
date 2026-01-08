@@ -2,7 +2,6 @@ import React from 'react';
 import { View } from 'react-native';
 import { GameProvider, useGameContext } from '../../contexts/GameContext';
 import { gameStyles } from '../../styles/styles';
-import CompletionScreen from './CompletionScreen';
 import GameHeader from './GameHeader';
 import PartAGrid from './PartAGrid';
 import PartBGrid from './PartBGrid';
@@ -24,8 +23,6 @@ function L2WGameContent() {
           <PartBGrid />
         ) : null}
       </View>
-
-      {game.isComplete && <CompletionScreen score={game.score} />}
     </View>
   );
 }

@@ -1,9 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { gameStyles } from '../../styles/styles';
-import { useResponsive } from '../../hooks/useResponsive';
 import { useGameContext } from '../../contexts/GameContext';
-import GameButton from './GameButton';
+import { useResponsive } from '../../hooks/useResponsive';
+import { gameStyles } from '../../styles/styles';
 
 interface CompletionScreenProps {
   score: number;
@@ -11,20 +10,53 @@ interface CompletionScreenProps {
 
 /**
  * Displays the level completion screen
+ * Positioned the same way as Part B's "Continue" message overlay
  */
 export default function CompletionScreen({ score }: CompletionScreenProps) {
-  const { isSmallScreen, title, info } = useResponsive();
+  const { letter } = useResponsive();
   const game = useGameContext();
 
   return (
-    <View style={gameStyles.completeContainer}>
-      <Text style={[gameStyles.completeText, { fontSize: isSmallScreen ? 32 : 42 }]}>
+    <View
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+      }}
+    >
+      <Text
+        style={[
+          gameStyles.message,
+          gameStyles.failForward,
+          {
+            fontSize: letter * 1.2,
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+          },
+        ]}
+      >
         Level complete!
       </Text>
-      <Text style={[gameStyles.completeScore, { fontSize: isSmallScreen ? 18 : 24, marginTop: 10, marginBottom: 20 }]}>
+      <Text
+        style={[
+          gameStyles.message,
+          gameStyles.failForward,
+          {
+            fontSize: letter * 1.2,
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            marginTop: 20,
+          },
+        ]}
+      >
         Nice turn around!
       </Text>
-      <GameButton title="LEVEL UP?" onPress={game.handleLevelUp} />
     </View>
   );
 }

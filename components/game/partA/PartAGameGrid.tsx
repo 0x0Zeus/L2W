@@ -106,6 +106,24 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
     </View>
   );
 
+  // Calculate responsive font size for overlay messages
+  // Takes into account window size and grid width to prevent wrapping
+  const overlayFontSize = useMemo(() => {
+    // Base size from responsive hook (already accounts for window width)
+    const baseSize = letter * 1.2;
+    // Limit based on grid width (estimate ~10-12 characters width needed)
+    const maxSizeFromGrid = partAGridWidth / 10;
+    // Use the smaller of the two to prevent wrapping
+    return Math.min(baseSize, maxSizeFromGrid);
+  }, [letter, partAGridWidth]);
+
+  const overlayFontSizeLong = useMemo(() => {
+    // For longer text like "FAIL FORWARD?" (13 chars), use smaller size
+    const baseSize = letter * 1.0;
+    const maxSizeFromGrid = partAGridWidth / 13;
+    return Math.min(baseSize, maxSizeFromGrid);
+  }, [letter, partAGridWidth]);
+
   // Show overlay for all transition stages (including when the button appears)
   const showMessage = phase === 'transitionAB' && !!transitionStage;
   const showFail = transitionStage === 'redFail';
@@ -115,7 +133,7 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
     <View 
       ref={gridContainerRef}
       onLayout={handleLayout}
-      style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth, maxWidth: 500, maxHeight: 500, flex: 1 }}
+      style={{ position: 'relative', minHeight: partAGridWidth, minWidth: partAGridWidth, flex: 1, alignItems: 'center', justifyContent: 'center' }}
     >
       <View style={gameStyles.gridContainer}>
         {Array.from({ length: GRID_SIZE }, (_, row) => renderRow(row))}
@@ -141,7 +159,7 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
                 gameStyles.message,
                 gameStyles.fail,
                 {
-                  fontSize: letter * 1.2,
+                  fontSize: overlayFontSize,
                   fontWeight: 'bold',
                   textTransform: 'uppercase',
                 },
@@ -156,7 +174,7 @@ export default function PartAGameGrid({ grid, currentPiece, phase, transitionSta
                 gameStyles.message,
                 gameStyles.failForward,
                 {
-                  fontSize: letter * 1.2,
+                  fontSize: overlayFontSizeLong,
                   fontWeight: 'bold',
                   textTransform: 'uppercase',
                 },
