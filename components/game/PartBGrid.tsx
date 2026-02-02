@@ -1,11 +1,16 @@
+import { FEEDBACK_QUESTIONS } from '@/constants/feedback';
 import { GRID_SIZE } from '@/constants/game';
 import { usePartAGridSize } from '@/hooks/usePartAGridSize';
 import { usePartBCompletionStage } from '@/hooks/usePartBCompletionStage';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useGameContext } from '../../contexts/GameContext';
+import { useAnsweredQuestions } from '../../hooks/useAnsweredQuestions';
+import { useFeedbackQuestion } from '../../hooks/useFeedbackQuestion';
 import { useResponsive } from '../../hooks/useResponsive';
+import { submitFeedbackToGoogleSheets } from '../../services/googleSheets';
 import { gameStyles } from '../../styles/styles';
+import FeedbackModal from '../feedback/FeedbackModal';
 import GameInfo from './GameInfo';
 import { DraggingOverlay } from './partB/DraggingOverlay';
 import { GameGrid } from './partB/GameGrid';
@@ -31,8 +36,11 @@ export default function PartBGrid() {
   const [isComplete, setIsComplete] = useState(false);
   const [showTimeUpOverlay, setShowTimeUpOverlay] = useState(false);
   const [timeUpStage, setTimeUpStage] = useState<'time' | 'continue' | 'button'>('time');
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const completionStage = usePartBCompletionStage(isComplete);
   const { letter } = useResponsive();
+  const { getRandomUnansweredQuestion } = useFeedbackQuestion();
+  const { markQuestionAsAnswered } = useAnsweredQuestions();
 
   // Timer hook - 2 minutes (120 seconds)
   const timer = usePartBTimer({
@@ -114,6 +122,12 @@ export default function PartBGrid() {
     setTimeUpStage('time');
     // Clear hidden piece state
     setHiddenPieceId(null);
+  };
+
+  // Handle level up (called after feedback is submitted or if no unanswered questions)
+  const handleLevelUp = () => {
+    setIsComplete(false);
+    game.handleLevelUp();
   };
 
   // Drag and drop hook
@@ -334,12 +348,46 @@ export default function PartBGrid() {
 
       <PartBControls 
         onLevelUp={() => {
-          setIsComplete(false);
-          game.handleLevelUp();
+          // Check if there's an unanswered question
+          const question = getRandomUnansweredQuestion();
+          if (question) {
+            // Show feedback modal before leveling up
+            setShowFeedbackModal(true);
+          } else {
+            // All questions answered, proceed with level up
+            handleLevelUp();
+          }
         }} 
         showLevelUp={completionStage === 'button'}
         onContinue={handleContinue}
         showContinue={showTimeUpOverlay && timeUpStage === 'button'}
+      />
+
+      <FeedbackModal
+        visible={showFeedbackModal}
+        level={game.level}
+        onClose={() => {
+          setShowFeedbackModal(false);
+          // After closing modal, proceed with level up
+          handleLevelUp();
+        }}
+        onSubmit={async (questionId, answer) => {
+          // Find the question text
+          const question = FEEDBACK_QUESTIONS.find((q) => q.id === questionId);
+          if (!question) return;
+
+          // Submit to Google Sheets
+          await submitFeedbackToGoogleSheets({
+            questionId,
+            question: question.question,
+            answer,
+            level: game.level,
+          });
+
+          // Mark question as answered
+          await markQuestionAsAnswered(questionId);
+        }}
+        getRandomUnansweredQuestion={getRandomUnansweredQuestion}
       />
 
       <DraggingOverlay
