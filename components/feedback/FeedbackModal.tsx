@@ -2,7 +2,8 @@ import { FeedbackQuestion } from '@/constants/feedback';
 import { GAME_COLORS } from '@/constants/game';
 import { useResponsive } from '@/hooks/useResponsive';
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GameButton from '../game/GameButton';
 
 interface FeedbackModalProps {
@@ -26,6 +27,7 @@ export default function FeedbackModal({
   const [otherText, setOtherText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { letter, button } = useResponsive();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -117,8 +119,18 @@ export default function FeedbackModal({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS !== 'web'}
     >
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, {
+        marginTop: Platform.OS !== 'web' ? -insets.top : 0,
+        marginBottom: Platform.OS !== 'web' ? -insets.bottom : 0,
+        marginLeft: Platform.OS !== 'web' ? -insets.left : 0,
+        marginRight: Platform.OS !== 'web' ? -insets.right : 0,
+        paddingTop: Platform.OS !== 'web' ? insets.top + 20 : 20,
+        paddingBottom: Platform.OS !== 'web' ? insets.bottom + 20 : 20,
+        paddingLeft: Platform.OS !== 'web' ? insets.left + 20 : 20,
+        paddingRight: Platform.OS !== 'web' ? insets.right + 20 : 20,
+      }]}>
         <View style={styles.modalContainer}>
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <Text style={[styles.title, { fontSize: letter * 0.7 }]}>Question</Text>
@@ -217,7 +229,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    ...Platform.select({
+      web: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      },
+      default: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      },
+    }),
   },
   modalContainer: {
     backgroundColor: GAME_COLORS.background,
