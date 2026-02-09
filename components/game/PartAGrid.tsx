@@ -1,4 +1,5 @@
 import { usePartAGridSize } from '@/hooks/usePartAGridSize';
+import { getRotationFromLevel } from '@/utils/gameLogic';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useGameContext } from '../../contexts/GameContext';
@@ -31,38 +32,160 @@ export default function PartAGrid() {
     onPhaseChange: game.setPhase,
   });
 
-  // Gesture handlers
+  // Gesture handlers - match keyboard logic exactly
   const handleTap = useCallback(() => {
     gameLogic.rotateCurrentPiece();
   }, [gameLogic]);
 
   const handleSwipeLeft = useCallback(() => {
-    gameLogic.movePiece('left');
-  }, [gameLogic]);
+    const level = game.level;
+    const rotation = getRotationFromLevel(level);
+    
+    // Level 1-2: left = move left
+    if (level <= 2) {
+      gameLogic.movePiece('left');
+    }
+    // Level 3-4: left = drop left (fast fall)
+    else if (level >= 3 && level <= 4) {
+      gameLogic.dropPieceInDirection('left');
+    }
+    // Level 5-6: left = rotate
+    else if (level >= 5 && level <= 6) {
+      gameLogic.rotateCurrentPiece();
+    }
+    // Level 7-8: left = move left
+    else if (level >= 7 && level <= 8) {
+      gameLogic.movePiece('left');
+    }
+    // Level 9+: use rotation to determine behavior
+    else {
+      if (rotation === 0) {
+        // Level 1-2 mapping: left = move left
+        gameLogic.movePiece('left');
+      } else if (rotation === 90) {
+        // Level 3-4 mapping: left = drop left
+        gameLogic.dropPieceInDirection('left');
+      } else if (rotation === 270) {
+        // Level 5-6 mapping: left = rotate
+        gameLogic.rotateCurrentPiece();
+      } else if (rotation === 180) {
+        // Level 7-8 mapping: left = move left
+        gameLogic.movePiece('left');
+      }
+    }
+  }, [gameLogic, game.level]);
 
   const handleSwipeRight = useCallback(() => {
-    gameLogic.movePiece('right');
-  }, [gameLogic]);
-
-  const handleSwipeDown = useCallback(() => {
-    // For levels 1-2: down swipe moves piece down one step (manual movement)
-    if (game.level <= 2) {
-      gameLogic.movePieceDown();
+    const level = game.level;
+    const rotation = getRotationFromLevel(level);
+    
+    // Level 1-2: right = move right
+    if (level <= 2) {
+      gameLogic.movePiece('right');
     }
-    // For levels 3-4: down swipe moves vertically
-    else if (game.level >= 3 && game.level <= 4) {
-      gameLogic.movePieceVertical('down');
+    // Level 3-4: right = rotate
+    else if (level >= 3 && level <= 4) {
+      gameLogic.rotateCurrentPiece();
     }
-    // For levels 5+: down swipe drops piece
+    // Level 5-6: right = drop right (fast fall)
+    else if (level >= 5 && level <= 6) {
+      gameLogic.dropPieceInDirection('right');
+    }
+    // Level 7-8: right = move right
+    else if (level >= 7 && level <= 8) {
+      gameLogic.movePiece('right');
+    }
+    // Level 9+: use rotation to determine behavior
     else {
-      gameLogic.dropPiece();
+      if (rotation === 0) {
+        // Level 1-2 mapping: right = move right
+        gameLogic.movePiece('right');
+      } else if (rotation === 90) {
+        // Level 3-4 mapping: right = rotate
+        gameLogic.rotateCurrentPiece();
+      } else if (rotation === 270) {
+        // Level 5-6 mapping: right = drop right
+        gameLogic.dropPieceInDirection('right');
+      } else if (rotation === 180) {
+        // Level 7-8 mapping: right = move right
+        gameLogic.movePiece('right');
+      }
     }
   }, [gameLogic, game.level]);
 
   const handleSwipeUp = useCallback(() => {
-    // For levels 3-6, up swipe moves vertically
-    if (game.level >= 3 && game.level <= 6) {
+    const level = game.level;
+    const rotation = getRotationFromLevel(level);
+    
+    // Level 1-2: up = rotate
+    if (level <= 2) {
+      gameLogic.rotateCurrentPiece();
+    }
+    // Level 3-4: up = move up (vertical)
+    else if (level >= 3 && level <= 4) {
       gameLogic.movePieceVertical('up');
+    }
+    // Level 5-6: up = move up (vertical)
+    else if (level >= 5 && level <= 6) {
+      gameLogic.movePieceVertical('up');
+    }
+    // Level 7-8: up = drop up (fast fall)
+    else if (level >= 7 && level <= 8) {
+      gameLogic.dropPieceInDirection('up');
+    }
+    // Level 9+: use rotation to determine behavior
+    else {
+      if (rotation === 0) {
+        // Level 1-2 mapping: up = rotate
+        gameLogic.rotateCurrentPiece();
+      } else if (rotation === 90) {
+        // Level 3-4 mapping: up = move up
+        gameLogic.movePieceVertical('up');
+      } else if (rotation === 270) {
+        // Level 5-6 mapping: up = move up
+        gameLogic.movePieceVertical('up');
+      } else if (rotation === 180) {
+        // Level 7-8 mapping: up = drop up
+        gameLogic.dropPieceInDirection('up');
+      }
+    }
+  }, [gameLogic, game.level]);
+
+  const handleSwipeDown = useCallback(() => {
+    const level = game.level;
+    const rotation = getRotationFromLevel(level);
+    
+    // Level 1-2: down = fast fall down
+    if (level <= 2) {
+      gameLogic.dropPieceInDirection('down');
+    }
+    // Level 3-4: down = move down (vertical)
+    else if (level >= 3 && level <= 4) {
+      gameLogic.movePieceVertical('down');
+    }
+    // Level 5-6: down = move down (vertical)
+    else if (level >= 5 && level <= 6) {
+      gameLogic.movePieceVertical('down');
+    }
+    // Level 7-8: down = rotate
+    else if (level >= 7 && level <= 8) {
+      gameLogic.rotateCurrentPiece();
+    }
+    // Level 9+: use rotation to determine behavior
+    else {
+      if (rotation === 0) {
+        // Level 1-2 mapping: down = fast fall down
+        gameLogic.dropPieceInDirection('down');
+      } else if (rotation === 90) {
+        // Level 3-4 mapping: down = move down
+        gameLogic.movePieceVertical('down');
+      } else if (rotation === 270) {
+        // Level 5-6 mapping: down = move down
+        gameLogic.movePieceVertical('down');
+      } else if (rotation === 180) {
+        // Level 7-8 mapping: down = rotate
+        gameLogic.rotateCurrentPiece();
+      }
     }
   }, [gameLogic, game.level]);
 
