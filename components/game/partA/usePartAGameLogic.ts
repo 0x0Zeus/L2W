@@ -27,6 +27,9 @@ function getFallInterval(level: number): number {
   return FALL_INTERVAL_DEFAULT;
 }
 
+// Delay before L-block removal for better UX (in milliseconds)
+const L_BLOCK_REMOVAL_DELAY = 400;
+
 interface UsePartAGameLogicProps {
   phase: GamePhase;
   level: number;
@@ -73,6 +76,15 @@ export function usePartAGameLogic({
   useEffect(() => {
     levelRef.current = level;
   }, [level]);
+
+  /**
+   * Check if any L-blocks exist in the grid (without removing them)
+   */
+  const hasLBlocks = useCallback((gridState: number[][]): boolean => {
+    const lfbBlocks = detectLBlocks(gridState, L_PATTERNS.LFB);
+    const rfbBlocks = detectLBlocks(gridState, L_PATTERNS.RFB);
+    return lfbBlocks.length > 0 || rfbBlocks.length > 0;
+  }, []);
 
   /**
    * Processes L-block detection and removal
@@ -161,43 +173,53 @@ export function usePartAGameLogic({
         const updatedGrid = placePiece(activeGrid, activePiece);
         setGrid(updatedGrid);
 
-        // Process L-block detection and removal
-        const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
-          processLBlockRemoval(updatedGrid);
-
-        setGrid(finalGrid);
-
         // Update last color to the piece that was just placed
         lastColorRef.current = activePiece.color;
 
-        // Defer callback updates to avoid updating parent during render
+        // Check if L-blocks are formed - only delay if they exist
+        const hasBlocks = hasLBlocks(updatedGrid);
+        const delay = hasBlocks ? L_BLOCK_REMOVAL_DELAY : 0;
+
         setTimeout(() => {
-          if (newRFBs > 0) {
-            onRfbCountChange(newRFBs);
-          }
-          if (newLFBs > 0) {
-            onLfbCountChange(newLFBs);
-          }
-          if (newScore > 0) {
-            onScoreChange(newScore);
-          }
+          // Process L-block detection and removal
+          const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
+            processLBlockRemoval(updatedGrid);
 
-          // Check if game is over (grid full at spawn edge)
+          setGrid(finalGrid);
+
+          // Defer callback updates to avoid updating parent during render
+          setTimeout(() => {
+            if (newRFBs > 0) {
+              onRfbCountChange(newRFBs);
+            }
+            if (newLFBs > 0) {
+              onLfbCountChange(newLFBs);
+            }
+            if (newScore > 0) {
+              onScoreChange(newScore);
+            }
+
+            // Check if game is over (grid full at spawn edge)
+            if (isGridFullToTop(finalGrid, rotation)) {
+              onPhaseChange('transitionAB');
+              setGameStarted(false);
+            }
+          }, 0);
+
+          // Check if game is over - return null to stop piece generation
           if (isGridFullToTop(finalGrid, rotation)) {
-            onPhaseChange('transitionAB');
-            setGameStarted(false);
+            setCurrentPiece(null);
+            return;
           }
-        }, 0);
 
-        // Check if game is over - return null to stop piece generation
-        if (isGridFullToTop(finalGrid, rotation)) {
-          return null;
-        }
+          // Generate next piece (avoiding same color as the piece that was just placed)
+          const next = generateRandomPiece(activePiece.color, currentLevel);
+          setNextPiece(next);
+          setCurrentPiece(next);
+        }, delay);
 
-        // Generate next piece (avoiding same color as the piece that was just placed)
-        const next = generateRandomPiece(activePiece.color, currentLevel);
-        setNextPiece(next);
-        return next;
+        // Return null to stop current piece from falling while waiting for L-block removal
+        return null;
       });
     }, fallInterval);
 
@@ -210,6 +232,7 @@ export function usePartAGameLogic({
     phase,
     gameStarted,
     level,
+    hasLBlocks,
     processLBlockRemoval,
     onPhaseChange,
     onScoreChange,
@@ -294,46 +317,52 @@ export function usePartAGameLogic({
       const updatedGrid = placePiece(grid, currentPiece);
       setGrid(updatedGrid);
 
-      // Process L-block detection and removal
-      const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
-        processLBlockRemoval(updatedGrid);
-
-      setGrid(finalGrid);
-
       // Update last color
       lastColorRef.current = currentPiece.color;
 
-      // Defer callback updates
+      // Check if L-blocks are formed - only delay if they exist
+      const hasBlocks = hasLBlocks(updatedGrid);
+      const delay = hasBlocks ? L_BLOCK_REMOVAL_DELAY : 0;
+
       setTimeout(() => {
-        if (newRFBs > 0) {
-          onRfbCountChange(newRFBs);
-        }
-        if (newLFBs > 0) {
-          onLfbCountChange(newLFBs);
-        }
-        if (newScore > 0) {
-          onScoreChange(newScore);
-        }
+        // Process L-block detection and removal
+        const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
+          processLBlockRemoval(updatedGrid);
 
-        // Check if game is over
+        setGrid(finalGrid);
+
+        // Defer callback updates
+        setTimeout(() => {
+          if (newRFBs > 0) {
+            onRfbCountChange(newRFBs);
+          }
+          if (newLFBs > 0) {
+            onLfbCountChange(newLFBs);
+          }
+          if (newScore > 0) {
+            onScoreChange(newScore);
+          }
+
+          // Check if game is over
+          if (isGridFullToTop(finalGrid, rotation)) {
+            onPhaseChange('transitionAB');
+            setGameStarted(false);
+          }
+        }, 0);
+
+        // Check if game is over - stop piece generation
         if (isGridFullToTop(finalGrid, rotation)) {
-          onPhaseChange('transitionAB');
-          setGameStarted(false);
+          setCurrentPiece(null);
+          return;
         }
-      }, 0);
 
-      // Check if game is over - stop piece generation
-      if (isGridFullToTop(finalGrid, rotation)) {
-        setCurrentPiece(null);
-        return;
-      }
-
-      // Generate next piece
-      const next = generateRandomPiece(currentPiece.color, level);
-      setNextPiece(next);
-      setCurrentPiece(next);
+        // Generate next piece
+        const next = generateRandomPiece(currentPiece.color, level);
+        setNextPiece(next);
+        setCurrentPiece(next);
+      }, delay);
     }
-  }, [currentPiece, grid, level, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
+  }, [currentPiece, grid, level, hasLBlocks, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
 
   /**
    * Drop piece in fall direction (for levels 3+)
@@ -366,45 +395,51 @@ export function usePartAGameLogic({
     const updatedGrid = placePiece(grid, finalPiece);
     setGrid(updatedGrid);
 
-    // Process L-block detection and removal
-    const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
-      processLBlockRemoval(updatedGrid);
-
-    setGrid(finalGrid);
-
     // Update last color
     lastColorRef.current = finalPiece.color;
 
-    // Defer callback updates
+    // Check if L-blocks are formed - only delay if they exist
+    const hasBlocks = hasLBlocks(updatedGrid);
+    const delay = hasBlocks ? L_BLOCK_REMOVAL_DELAY : 0;
+
     setTimeout(() => {
-      if (newRFBs > 0) {
-        onRfbCountChange(newRFBs);
-      }
-      if (newLFBs > 0) {
-        onLfbCountChange(newLFBs);
-      }
-      if (newScore > 0) {
-        onScoreChange(newScore);
-      }
+      // Process L-block detection and removal
+      const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
+        processLBlockRemoval(updatedGrid);
 
-      // Check if game is over
+      setGrid(finalGrid);
+
+      // Defer callback updates
+      setTimeout(() => {
+        if (newRFBs > 0) {
+          onRfbCountChange(newRFBs);
+        }
+        if (newLFBs > 0) {
+          onLfbCountChange(newLFBs);
+        }
+        if (newScore > 0) {
+          onScoreChange(newScore);
+        }
+
+        // Check if game is over
+        if (isGridFullToTop(finalGrid, rotation)) {
+          onPhaseChange('transitionAB');
+          setGameStarted(false);
+        }
+      }, 0);
+
+      // Check if game is over - stop piece generation
       if (isGridFullToTop(finalGrid, rotation)) {
-        onPhaseChange('transitionAB');
-        setGameStarted(false);
+        setCurrentPiece(null);
+        return;
       }
-    }, 0);
 
-    // Check if game is over - stop piece generation
-    if (isGridFullToTop(finalGrid, rotation)) {
-      setCurrentPiece(null);
-      return;
-    }
-
-    // Generate next piece
-    const next = generateRandomPiece(finalPiece.color, level);
-    setNextPiece(next);
-    setCurrentPiece(next);
-  }, [currentPiece, grid, level, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
+      // Generate next piece
+      const next = generateRandomPiece(finalPiece.color, level);
+      setNextPiece(next);
+      setCurrentPiece(next);
+    }, delay);
+  }, [currentPiece, grid, level, hasLBlocks, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
 
   /**
    * Drop piece in a specific direction (for keyboard controls)
@@ -457,45 +492,51 @@ export function usePartAGameLogic({
     const updatedGrid = placePiece(grid, finalPiece);
     setGrid(updatedGrid);
 
-    // Process L-block detection and removal
-    const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
-      processLBlockRemoval(updatedGrid);
-
-    setGrid(finalGrid);
-
     // Update last color
     lastColorRef.current = finalPiece.color;
 
-    // Defer callback updates
+    // Check if L-blocks are formed - only delay if they exist
+    const hasBlocks = hasLBlocks(updatedGrid);
+    const delay = hasBlocks ? L_BLOCK_REMOVAL_DELAY : 0;
+
     setTimeout(() => {
-      if (newRFBs > 0) {
-        onRfbCountChange(newRFBs);
-      }
-      if (newLFBs > 0) {
-        onLfbCountChange(newLFBs);
-      }
-      if (newScore > 0) {
-        onScoreChange(newScore);
-      }
+      // Process L-block detection and removal
+      const { grid: finalGrid, rfbCount: newRFBs, lfbCount: newLFBs, score: newScore } =
+        processLBlockRemoval(updatedGrid);
 
-      // Check if game is over
+      setGrid(finalGrid);
+
+      // Defer callback updates
+      setTimeout(() => {
+        if (newRFBs > 0) {
+          onRfbCountChange(newRFBs);
+        }
+        if (newLFBs > 0) {
+          onLfbCountChange(newLFBs);
+        }
+        if (newScore > 0) {
+          onScoreChange(newScore);
+        }
+
+        // Check if game is over
+        if (isGridFullToTop(finalGrid, rotation)) {
+          onPhaseChange('transitionAB');
+          setGameStarted(false);
+        }
+      }, 0);
+
+      // Check if game is over - stop piece generation
       if (isGridFullToTop(finalGrid, rotation)) {
-        onPhaseChange('transitionAB');
-        setGameStarted(false);
+        setCurrentPiece(null);
+        return;
       }
-    }, 0);
 
-    // Check if game is over - stop piece generation
-    if (isGridFullToTop(finalGrid, rotation)) {
-      setCurrentPiece(null);
-      return;
-    }
-
-    // Generate next piece
-    const next = generateRandomPiece(finalPiece.color, level);
-    setNextPiece(next);
-    setCurrentPiece(next);
-  }, [currentPiece, grid, level, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
+      // Generate next piece
+      const next = generateRandomPiece(finalPiece.color, level);
+      setNextPiece(next);
+      setCurrentPiece(next);
+    }, delay);
+  }, [currentPiece, grid, level, hasLBlocks, processLBlockRemoval, onPhaseChange, onScoreChange, onRfbCountChange, onLfbCountChange]);
 
   /**
    * Rotate piece

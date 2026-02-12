@@ -9,6 +9,40 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
+// Get completion message based on level
+// Level 1: "NICE TURN AROUND!"
+// Level 2: "GOOD JOB!"
+// Level 3: "THERE YOU GO!"
+// Level 4: "AWESOME RESULT!"
+// Level 5: "BRILLIANT!"
+// Level 6: "WELL DONE!"
+// Level 7: "GREAT FINISH!"
+// Level 8: "CRUSHING IT!"
+// Level 9: "LIKE A BOSS!"
+// Level 10+: Random from all 9 messages
+export function getCompletionMessage(level: number): string {
+  const messages = [
+    'NICE TURN AROUND!',  // Level 1
+    'GOOD JOB!',          // Level 2
+    'THERE YOU GO!',      // Level 3
+    'AWESOME RESULT!',    // Level 4
+    'BRILLIANT!',         // Level 5
+    'WELL DONE!',         // Level 6
+    'GREAT FINISH!',      // Level 7
+    'CRUSHING IT!',       // Level 8
+    'LIKE A BOSS!',       // Level 9
+  ];
+
+  if (level >= 1 && level <= 9) {
+    return messages[level - 1];
+  }
+  
+  // Level 10+: Random from all 9 messages (deterministic based on level)
+  const randomValue = seededRandom(level);
+  const randomIndex = Math.floor(randomValue * messages.length);
+  return messages[randomIndex];
+}
+
 // Get rotation type from level
 // Level 1-2: 0° (top to bottom)
 // Level 3-4: 90° (right to left)

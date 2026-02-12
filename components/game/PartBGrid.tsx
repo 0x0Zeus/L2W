@@ -2,6 +2,7 @@ import { FEEDBACK_QUESTIONS } from '@/constants/feedback';
 import { GRID_SIZE } from '@/constants/game';
 import { usePartAGridSize } from '@/hooks/usePartAGridSize';
 import { usePartBCompletionStage } from '@/hooks/usePartBCompletionStage';
+import { getCompletionMessage } from '@/utils/gameLogic';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useGameContext } from '../../contexts/GameContext';
@@ -329,7 +330,7 @@ export default function PartBGrid() {
                   },
                 ]}
               >
-                Nice turn around!
+                {getCompletionMessage(game.level)}
               </Text>
             )}
           </View>

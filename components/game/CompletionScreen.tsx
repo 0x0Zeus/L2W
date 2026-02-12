@@ -4,6 +4,7 @@ import { useGameContext } from '../../contexts/GameContext';
 import { usePartAGridSize } from '../../hooks/usePartAGridSize';
 import { useResponsive } from '../../hooks/useResponsive';
 import { gameStyles } from '../../styles/styles';
+import { getCompletionMessage } from '../../utils/gameLogic';
 
 interface CompletionScreenProps {
   score: number;
@@ -65,7 +66,7 @@ export default function CompletionScreen({ score }: CompletionScreenProps) {
           },
         ]}
       >
-        Nice turn around!
+        {getCompletionMessage(game.level)}
       </Text>
     </View>
   );
