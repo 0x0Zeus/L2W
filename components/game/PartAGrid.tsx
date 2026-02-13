@@ -189,6 +189,30 @@ export default function PartAGrid() {
     }
   }, [gameLogic, game.level]);
 
+  const handleMoveDown = useCallback(() => {
+    const level = game.level;
+    const rotation = getRotationFromLevel(level);
+    
+    // Level 3-4: down = move down (vertical)
+    if (level >= 3 && level <= 4) {
+      gameLogic.movePieceVertical('down');
+    }
+    // Level 5-6: down = move down (vertical)
+    else if (level >= 5 && level <= 6) {
+      gameLogic.movePieceVertical('down');
+    }
+    // Level 9+: use rotation to determine behavior
+    else if (level >= 9) {
+      if (rotation === 90) {
+        // Level 3-4 mapping: down = move down
+        gameLogic.movePieceVertical('down');
+      } else if (rotation === 270) {
+        // Level 5-6 mapping: down = move down
+        gameLogic.movePieceVertical('down');
+      }
+    }
+  }, [gameLogic, game.level]);
+
   // Gesture hook - handles touch/swipe gestures
   const panResponder = usePartAGestures({
     phase: game.phase,
@@ -209,12 +233,7 @@ export default function PartAGrid() {
     onMoveLeft: handleSwipeLeft,
     onMoveRight: handleSwipeRight,
     onMoveUp: handleSwipeUp,
-    onMoveDown: () => {
-      // For levels 3-6, down arrow should move down vertically
-      if (game.level >= 3 && game.level <= 6) {
-        gameLogic.movePieceVertical('down');
-      }
-    },
+    onMoveDown: handleMoveDown,
     onDrop: handleSwipeDown,
     onDropLeft: () => gameLogic.dropPieceInDirection('left'),
     onDropRight: () => gameLogic.dropPieceInDirection('right'),
